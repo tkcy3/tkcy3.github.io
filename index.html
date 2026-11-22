@@ -109,7 +109,7 @@ button:active{transform:scale(.97)}
     <h3>送る内容</h3>
     <ul><li>KROPKI：問題をクリアしたときの記録（サイズ・難しさ・問題番号・タイム・チェックの回数）</li>
         <li>Dungeon Chain：冒険の記録（職業・到達した階・ターン数・レベル・倒した数・覚えたスキル・倒された相手など）</li>
-        <li>LAPIS：ゲームが終わったときの記録（点数・いちばん大きい宝石・手数・最大連鎖・選んだ加護・戻すと－を使った回数・プレイ時間）</li>
+        <li>LAPIS：ゲームが終わったときの記録（点数・いちばん大きい星・手数・最大連鎖・選んだ加護・戻すと－を使った回数・プレイ時間）</li>
         <li>ゲーム一覧：どのゲームを開いたか</li>
         <li>ゲームのバージョンと、端末ごとにランダムに作られる番号（同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません）</li></ul>
     <h3>送らないもの</h3>
@@ -135,7 +135,7 @@ button:active{transform:scale(.97)}
 
 <script>
 (function(){
-var VERSION = '0.3.3';
+var VERSION = '0.3.4';
 var NAME = 'ゲームコレクション';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
@@ -143,8 +143,8 @@ var GAMES = [
    lb:'#f3efe4', sb:'#efe6d2', st:'#3a332b', light:1, pb:'#56647a', pd:'#3e495a', pat:'radial-gradient(circle at 25% 25%,#2d2c2a 5px,transparent 6px),radial-gradient(circle at 75% 75%,transparent 4px,#2d2c2a 5px,#2d2c2a 7px,transparent 8px)'},
   {id:'dungeon-chain', name:'Dungeon Chain', desc:'タイルをつないで、地下深くへ', tags:['⚔️ RPG','💀 くり返し挑戦'], url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png',
    lb:'#2a2119', sb:'#3a2c22', st:'#f6ead2', pb:'#d9a23a', pd:'#9c6f1f', pat:'linear-gradient(45deg,#f0c766 2px,transparent 2px),linear-gradient(-45deg,#f0c766 2px,transparent 2px)'},
-  {id:'lapis', name:'LAPIS', desc:'宝石を合わせて、大きく育てる', tags:['💎 パズル','🌀 まるい盤'], url:'/lapis/', icon:'/lapis/icon-192.png',
-   lb:'#3e5f8f', sb:'#34507a', st:'#eef3fb', pb:'#6d8fc4', pd:'#4b6a9b', pat:'radial-gradient(circle,#cfe6ff 3px,transparent 4px)'}
+  {id:'lapis', name:'LAPIS', desc:'星を合わせて、銀河まで育てる', tags:['🪐 パズル','🌌 宇宙'], url:'/lapis/', icon:'/lapis/icon-192.png',
+   lb:'#2e3d78', sb:'#263266', st:'#eef2fb', pb:'#5a64a8', pd:'#3a4380', pat:'radial-gradient(circle,#ffffff 1.6px,transparent 2.6px)'}
 ];
 var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
