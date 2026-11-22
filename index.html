@@ -15,10 +15,12 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg)}
 body{background-image:radial-gradient(rgba(120,100,70,.07) 1.2px,transparent 1.4px);background-size:14px 14px}
-body{font-family:"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+body{font-family:"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif}
+/* pinned to the area we really get (100vh can reach under the phone's ◁○≡ bar) */
+#root{position:fixed;inset:0;overflow-y:auto;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 button{font:inherit;color:inherit;background:var(--panel);border:2px solid var(--btn);border-radius:12px;cursor:pointer}
 button:active{transform:scale(.97)}
-.wrap{max-width:520px;min-height:100vh;min-height:100dvh;margin:0 auto;padding:14px 16px 18px;display:flex;flex-direction:column}
+.wrap{max-width:520px;min-height:100%;margin:0 auto;padding:14px 16px 18px;display:flex;flex-direction:column}
 .head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 2px 12px}
 .head h1{margin:0;font-size:21px;font-weight:900;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .head h1 i{display:inline-block;width:10px;height:10px;margin-right:4px;border-radius:3px;vertical-align:middle;transform:rotate(12deg)}
@@ -82,13 +84,13 @@ button:active{transform:scale(.97)}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="root"><div class="wrap">
   <div class="head"><h1 id="ttl"></h1><button id="setBtn" aria-label="設定">⚙</button></div>
   <div class="stage" id="stage"></div>
   <div class="pick" id="pick"></div>
   <button class="play" id="play">▶ あそぶ</button>
   <div class="ver" id="ver"></div>
-</div>
+</div></div>
 
 <!-- add to home screen (browser only) -->
 <div id="inst"><div class="box">
@@ -135,7 +137,7 @@ button:active{transform:scale(.97)}
 
 <script>
 (function(){
-var VERSION = '0.3.6';
+var VERSION = '0.3.7';
 var NAME = 'ゲームコレクション';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
