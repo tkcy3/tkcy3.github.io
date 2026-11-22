@@ -1,12 +1,12 @@
 {
-  "name": "ゲームケース",
-  "short_name": "ゲームケース",
+  "name": "ゲームコレクション",
+  "short_name": "ゲームコレクション",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#e6e3dc",
-  "theme_color": "#e6e3dc",
+  "background_color": "#f1ece3",
+  "theme_color": "#f1ece3",
   "icons": [
     {
       "src": "/icon-192.png",

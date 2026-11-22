@@ -3,43 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#e6e3dc">
-<title>ゲームケース</title>
+<meta name="theme-color" content="#f1ece3">
+<title>ゲームコレクション</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#e6e3dc;--panel:#f6f4ef;--line:#bdb8ae;--fg:#2d2c2a;--muted:#7a7670;--btn:#a9a49b;--accent:#b0782a;--num:#4c6f74;--numTx:#f8f6f1;--shellA:#5f878b;--shellB:#4d7377;--emb:#eef3f1;--felt:#2f4c50;--plA:#efeeea;--plB:#d8d6cf;--plC:#b3b0a8;--plT:#5d5a54}
-@media (prefers-color-scheme:dark){:root{--bg:#272b2f;--panel:#2f3338;--line:#4b5058;--fg:#e8e6e1;--muted:#9a9fa7;--btn:#5b616a;--accent:#c98f3a;--num:#4f777b;--numTx:#f1efe9;--shellA:#456569;--shellB:#3a585c;--emb:#dfe8e6;--felt:#22383b;--plA:#d9d7d1;--plB:#c2bfb8;--plC:#9c998f;--plT:#4f4c46}}
+:root{--bg:#f1ece3;--panel:#fbf8f2;--line:#d3cbbd;--fg:#3a332b;--muted:#8a8073;--btn:#b9b0a2;--accent:#d9822b;--num:#d9822b;--numTx:#fff;--ring:#d9822b}
+@media (prefers-color-scheme:dark){:root{--bg:#2c2925;--panel:#36322d;--line:#544d44;--fg:#eee8df;--muted:#a59b8e;--btn:#6a6258;--accent:#e0913f;--num:#d9822b;--numTx:#fff;--ring:#f0a650}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg)}
+body{background-image:radial-gradient(rgba(120,100,70,.07) 1.2px,transparent 1.4px);background-size:14px 14px}
 body{font-family:"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 button{font:inherit;color:inherit;background:var(--panel);border:2px solid var(--btn);border-radius:12px;cursor:pointer}
 button:active{transform:scale(.97)}
-.wrap{max-width:520px;margin:0 auto;padding:18px 14px 24px}
-/* the case: lid (title) + hinge + tray of cartridges */
-.case{background:linear-gradient(180deg,var(--shellA),var(--shellB));border-radius:28px;padding:0 10px 12px;box-shadow:0 8px 22px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.18),inset 0 -3px 0 rgba(0,0,0,.12)}
-.lid{text-align:center;padding:22px 0 18px}
-.lid h1{margin:0;font-size:30px;font-weight:900;letter-spacing:.22em;color:var(--emb);text-shadow:0 -1px 0 rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.14)}
-.hinge{height:8px;margin:0 18px 12px;border-radius:4px;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.12) 60%,rgba(255,255,255,.12))}
-.tray{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;padding:14px 12px 16px;border-radius:20px;background:var(--felt);background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px;box-shadow:inset 0 4px 10px rgba(0,0,0,.38)}
-.slot{display:flex;flex-direction:column;justify-content:flex-start;border-radius:16px;padding:6px 6px 8px;background:rgba(0,0,0,.2);box-shadow:inset 0 3px 6px rgba(0,0,0,.42);min-height:120px}
-.cart{position:relative;display:block;text-decoration:none;color:inherit;border-radius:13px 13px 11px 11px;padding:14px 8px 8px;background:linear-gradient(180deg,var(--plA),var(--plB));box-shadow:0 3px 0 var(--plC),0 6px 9px rgba(0,0,0,.32);transition:transform .26s cubic-bezier(.3,.7,.3,1),box-shadow .26s}
-.cart::before{content:"";position:absolute;top:5px;left:50%;width:42%;height:4px;transform:translateX(-50%);border-radius:2px;background:repeating-linear-gradient(90deg,var(--plC) 0 3px,transparent 3px 7px)}
-.cart:active{transform:translateY(-3px)}
-.cart.out{transform:translateY(-26px);box-shadow:0 3px 0 var(--plC),0 16px 18px rgba(0,0,0,.28)}
-.label{display:block;border-radius:9px;overflow:hidden;background:var(--lb,#ddd);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
-.label img,.label .ph{display:block;width:100%;aspect-ratio:1;object-fit:cover}
-.label .ph{display:flex;align-items:center;justify-content:center;font-size:56px}
-.label .nm{display:block;padding:7px 4px 8px;text-align:center;font-size:clamp(11.5px,3.45vw,17px);font-weight:900;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:clip;color:var(--lt,#222)}
-.tg{display:block;margin-top:7px;text-align:center;font-size:13.5px;line-height:1.35;color:var(--plT);min-height:1.35em}
-.cart.soon{pointer-events:none}
-.cart.soon .label{opacity:.72}
-.cart.soon .ribbon{position:absolute;top:22px;left:50%;transform:translateX(-50%);padding:3px 12px;border-radius:99px;background:var(--accent);color:#fff;font-size:13px;font-weight:800;white-space:nowrap;z-index:1}
-.foot{display:flex;align-items:center;justify-content:space-between;margin:18px 4px 0}
-.foot .ver{font-size:13px;color:var(--muted)}
-.foot button{height:48px;padding:0 18px;font-size:17px;font-weight:700}
+.wrap{max-width:520px;min-height:100vh;min-height:100dvh;margin:0 auto;padding:14px 16px 18px;display:flex;flex-direction:column}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 2px 12px}
+.head h1{margin:0;font-size:21px;font-weight:900;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head h1 i{display:inline-block;width:10px;height:10px;margin-right:4px;border-radius:3px;vertical-align:middle;transform:rotate(12deg)}
+.head button{width:46px;height:46px;flex:none;font-size:22px;padding:0}
+/* the stage: the picked game, big */
+.stage{position:relative;flex:1;min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 18px 22px;border-radius:28px;overflow:hidden;
+  background:var(--sb);color:var(--st);box-shadow:0 10px 24px rgba(0,0,0,.16);transition:background .35s,color .35s;touch-action:pan-y}
+.stage::before{content:"";position:absolute;inset:0;opacity:.13;background-image:var(--pat);background-size:44px 44px;pointer-events:none}
+.stage>*{position:relative}
+.stage .art{width:min(46vw,190px);aspect-ratio:1;border-radius:30px;box-shadow:0 12px 22px rgba(0,0,0,.28);background:var(--lb);display:flex;align-items:center;justify-content:center;font-size:min(26vw,104px);overflow:hidden}
+.stage .art img{width:100%;height:100%;object-fit:cover;display:block}
+.stage h2{margin:20px 0 4px;font-size:32px;font-weight:900;letter-spacing:.03em}
+.stage p{margin:0;font-size:16.5px;opacity:.86}
+.tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.tags span{padding:5px 12px;border-radius:99px;font-size:14.5px;font-weight:700;background:rgba(255,255,255,.2);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.28)}
+.stage.lightbg::before{opacity:.07}
+.stage.lightbg .tags span{background:rgba(0,0,0,.06);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.12)}
+.stage .in{animation:in .32s ease both}
+.stage .in.l{animation-name:inL}.stage .in.r{animation-name:inR}
+@keyframes in{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes inR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+.soonTag{position:absolute;top:16px;right:16px;padding:5px 12px;border-radius:99px;background:var(--accent);color:#fff;font-size:14px;font-weight:800}
+/* picker: one tile per game */
+.pick{display:flex;justify-content:center;gap:20px;margin:16px 0 14px;padding:8px 8px 0}
+.tile{flex:1;max-width:88px;background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--fg)}
+.tile .ic{width:100%;aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--lb);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 3px 8px rgba(0,0,0,.16);transition:transform .2s,box-shadow .2s;outline:4px solid transparent;outline-offset:3px}
+.tile .ic img{width:100%;height:100%;object-fit:cover;display:block}
+.tile small{font-size:13.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tile.on .ic{transform:translateY(-4px);outline-color:var(--ring);box-shadow:0 8px 14px rgba(0,0,0,.2)}
+.tile.on small{color:var(--fg)}
+.tile.soon .ic{filter:saturate(.5);opacity:.75}
+.play{width:100%;height:64px;font-size:22px;font-weight:900;letter-spacing:.1em;border:0;border-radius:18px;background:var(--pb);color:var(--pt);box-shadow:0 5px 0 var(--pd)}
+.play:active{transform:translateY(3px);box-shadow:0 2px 0 var(--pd)}
+.play:disabled{background:var(--btn);box-shadow:none;opacity:.6;letter-spacing:.04em}
+.ver{margin-top:12px;text-align:center;font-size:12.5px;color:var(--muted)}
 /* overlays */
 .ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
 .ov.on{display:flex}
@@ -68,12 +83,11 @@ button:active{transform:scale(.97)}
 </head>
 <body>
 <div class="wrap">
-  <div class="case">
-    <div class="lid"><h1 id="ttl"></h1></div>
-    <div class="hinge"></div>
-    <div class="tray" id="games"></div>
-  </div>
-  <div class="foot"><span class="ver" id="ver"></span><button id="setBtn">⚙ 設定</button></div>
+  <div class="head"><h1 id="ttl"></h1><button id="setBtn" aria-label="設定">⚙</button></div>
+  <div class="stage" id="stage"></div>
+  <div class="pick" id="pick"></div>
+  <button class="play" id="play">▶ あそぶ</button>
+  <div class="ver" id="ver"></div>
 </div>
 
 <!-- add to home screen (browser only) -->
@@ -96,7 +110,7 @@ button:active{transform:scale(.97)}
     <ul><li>KROPKI：問題をクリアしたときの記録（サイズ・難しさ・問題番号・タイム・チェックの回数）</li>
         <li>Dungeon Chain：冒険の記録（職業・到達した階・ターン数・レベル・倒した数・覚えたスキル・倒された相手など）</li>
         <li>LAPIS：ゲームが終わったときの記録（点数・いちばん大きい宝石・手数・最大連鎖・選んだ加護・戻すと－を使った回数・プレイ時間）</li>
-        <li>ゲームケース：どのゲームを開いたか</li>
+        <li>ゲーム一覧：どのゲームを開いたか</li>
         <li>ゲームのバージョンと、端末ごとにランダムに作られる番号（同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません）</li></ul>
     <h3>送らないもの</h3>
     <ul><li>名前・冒険者名・メールアドレス・電話番号・位置情報など、個人を特定できる情報</li>
@@ -121,13 +135,16 @@ button:active{transform:scale(.97)}
 
 <script>
 (function(){
-var VERSION = '0.2.1';
-var NAME = 'ゲームケース';   // the list's name (title, install screen)
+var VERSION = '0.3.0';
+var NAME = 'ゲームコレクション';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
-  {id:'kropki', name:'KROPKI', desc:'数字パズル', url:'/kropki/', icon:'/kropki/icon-192.png', lb:'#f3efe4', lt:'#2d2c2a'},
-  {id:'dungeon-chain', name:'Dungeon Chain', desc:'ダンジョンRPG', url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png', lb:'#2a2119', lt:'#f0c766'},
-  {id:'lapis', name:'LAPIS', desc:'宝石パズル', url:'/lapis/', icon:'/lapis/icon-192.png', lb:'#3e5f8f', lt:'#eef3fb'}
+  {id:'kropki', name:'KROPKI', desc:'白丸・黒丸をヒントに数字を埋める', tags:['🧩 パズル','🐈‍⬛ のんびり'], url:'/kropki/', icon:'/kropki/icon-192.png',
+   lb:'#f3efe4', sb:'#efe6d2', st:'#3a332b', light:1, pb:'#56647a', pd:'#3e495a', pat:'radial-gradient(circle at 25% 25%,#2d2c2a 5px,transparent 6px),radial-gradient(circle at 75% 75%,transparent 4px,#2d2c2a 5px,#2d2c2a 7px,transparent 8px)'},
+  {id:'dungeon-chain', name:'Dungeon Chain', desc:'タイルをつないで、地下深くへ', tags:['⚔️ RPG','💀 くり返し挑戦'], url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png',
+   lb:'#2a2119', sb:'#3a2c22', st:'#f6ead2', pb:'#d9a23a', pd:'#9c6f1f', pat:'linear-gradient(45deg,#f0c766 2px,transparent 2px),linear-gradient(-45deg,#f0c766 2px,transparent 2px)'},
+  {id:'lapis', name:'LAPIS', desc:'宝石を合わせて、大きく育てる', tags:['💎 パズル','🌀 まるい盤'], url:'/lapis/', icon:'/lapis/icon-192.png',
+   lb:'#3e5f8f', sb:'#34507a', st:'#eef3fb', pb:'#6d8fc4', pd:'#4b6a9b', pat:'radial-gradient(circle,#cfe6ff 3px,transparent 4px)'}
 ];
 var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
@@ -164,27 +181,39 @@ function log(ev, game){
   } catch(e) {}
 }
 
-/* ---- the case: one cartridge per game, plus empty slots for games to come ---- */
-$('ttl').textContent = $('instTtl').textContent = NAME; document.title = NAME;
-var box = $('games');
-var SLOTS = Math.max(4, GAMES.length + (GAMES.length % 2 ? 1 : 2));   // always a little room left
-for (var i = 0; i < SLOTS; i++) {
-  var slot = document.createElement('div'); slot.className = 'slot'; box.appendChild(slot);
-  var g = GAMES[i]; if (!g) continue;
-  var c = document.createElement(g.soon ? 'div' : 'a');
-  c.className = 'cart' + (g.soon ? ' soon' : '');
-  c.style.setProperty('--lb', g.lb); c.style.setProperty('--lt', g.lt);
-  c.innerHTML = (g.soon ? '<span class="ribbon">準備中</span>' : '') +
-    '<span class="label">' + (g.icon ? '<img src="' + g.icon + '" alt="">' : '<span class="ph">' + g.emoji + '</span>') +
-    '<span class="nm">' + g.name + '</span></span><span class="tg">' + g.desc + '</span>';
-  if (!g.soon) { c.href = g.url; c.onclick = (function(g, c){ return function(e){
-    e.preventDefault(); if (c.classList.contains('out')) return;
-    log('launch', g.id); c.classList.add('out');           // pull the cartridge out, then start
-    setTimeout(function(){ location.href = g.url; }, 280);
-  }; })(g, c); }
-  slot.appendChild(c);
+/* ---- the stage + picker ---- */
+$('ttl').innerHTML = GAMES.map(function(g){ return '<i style="background:' + (g.pb) + '"></i>'; }).join('') + ' ' + NAME;
+$('instTtl').textContent = NAME; document.title = NAME;
+function art(g){ return g.icon ? '<img src="' + g.icon + '" alt="">' : g.emoji; }
+var cur = 0; (function(){ var k = ls('tkcy3_pick'); GAMES.forEach(function(g, i){ if (g.id === k) cur = i; }); if (GAMES[cur].soon) cur = 0; })();
+var pick = $('pick');
+GAMES.forEach(function(g, i){
+  var t = document.createElement('button'); t.className = 'tile' + (g.soon ? ' soon' : '');
+  t.innerHTML = '<span class="ic" style="--lb:' + g.lb + '">' + art(g) + '</span><small>' + g.name + '</small>';
+  t.onclick = function(){ show(i); };
+  pick.appendChild(t);
+});
+function show(i, dir){
+  var from = cur; cur = (i + GAMES.length) % GAMES.length; var g = GAMES[cur], st = $('stage');
+  dir = dir || (cur > from ? 'r' : cur < from ? 'l' : '');
+  st.style.setProperty('--sb', g.sb); st.style.setProperty('--st', g.st); st.style.setProperty('--lb', g.lb); st.style.setProperty('--pat', g.pat);
+  st.classList.toggle('lightbg', !!g.light);
+  st.innerHTML = (g.soon ? '<span class="soonTag">準備中</span>' : '') +
+    '<div class="in ' + dir + '"><div class="art" style="margin:0 auto">' + art(g) + '</div><h2>' + g.name + '</h2><p>' + g.desc + '</p>' +
+    '<div class="tags">' + g.tags.map(function(x){ return '<span>' + x + '</span>'; }).join('') + '</div></div>';
+  [].forEach.call(pick.children, function(t, k){ t.classList.toggle('on', k === cur); });
+  var pl = $('play'); pl.disabled = !!g.soon; pl.textContent = g.soon ? 'もうすぐ遊べます' : '▶ あそぶ';
+  pl.style.setProperty('--pb', g.pb); pl.style.setProperty('--pd', g.pd); pl.style.setProperty('--pt', '#fff');
+  if (!g.soon) ls('tkcy3_pick', g.id);
 }
-addEventListener('pageshow', function(){ [].forEach.call(document.querySelectorAll('.cart.out'), function(c){ c.classList.remove('out'); }); });
+show(cur);
+$('play').onclick = function(){ var g = GAMES[cur]; if (g.soon) return; log('launch', g.id); location.href = g.url; };
+(function(){   // swipe the stage to flip through games
+  var x0 = null, y0 = 0, st = $('stage');
+  st.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, {passive:true});
+  st.addEventListener('touchend', function(e){ if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(cur + (dx < 0 ? 1 : -1), dx < 0 ? 'r' : 'l'); }, {passive:true});
+})();
 $('ver').textContent = 'v' + VERSION;
 
 /* ---- overlays ---- */
