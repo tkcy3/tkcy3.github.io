@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e8e5de">
+<title>あそびば</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#e8e5de;--panel:#f6f4ef;--line:#bdb8ae;--fg:#2d2c2a;--muted:#7a7670;--btn:#a9a49b;--accent:#a8741a;--num:#56647a;--numTx:#f8f6f1}
+@media (prefers-color-scheme:dark){:root{--bg:#25282d;--panel:#2e3238;--line:#4b5058;--fg:#e8e6e1;--muted:#9a9fa7;--btn:#5b616a;--accent:#d9b25f;--num:#4a5566;--numTx:#f1efe9}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg)}
+body{font-family:"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;background:var(--panel);border:2px solid var(--btn);border-radius:12px;cursor:pointer}
+button:active{transform:scale(.97)}
+.wrap{max-width:520px;margin:0 auto;padding:12px 14px 28px}
+.top{display:flex;justify-content:flex-end}
+.top button{width:52px;height:52px;font-size:24px}
+.logo{text-align:center;margin:8px 0 26px}
+.logo h1{margin:0;font-size:40px;font-weight:900;letter-spacing:.14em}
+.logo .dots{display:flex;justify-content:center;gap:10px;margin-top:10px}
+.logo .dots i{width:14px;height:14px;border-radius:50%;border:3px solid var(--fg)}
+.logo .dots i:nth-child(even){background:var(--fg)}
+.logo p{margin:12px 0 0;color:var(--muted);font-size:15px}
+.games{display:flex;flex-direction:column;gap:12px}
+.game{display:flex;align-items:center;gap:16px;width:100%;padding:14px;text-align:left;text-decoration:none;color:inherit;background:var(--panel);border:2px solid var(--btn);border-radius:16px}
+.game:active{transform:scale(.98)}
+.game img,.game .ph{width:68px;height:68px;border-radius:16px;flex:none;object-fit:cover}
+.game .ph{display:flex;align-items:center;justify-content:center;font-size:34px;background:var(--bg)}
+.game .tx{flex:1;min-width:0}
+.game b{display:block;font-size:21px;font-weight:800;letter-spacing:.02em}
+.game small{display:block;margin-top:4px;font-size:14.5px;color:var(--muted);line-height:1.45}
+.game .go{font-size:22px;color:var(--muted);flex:none}
+.game.soon{opacity:.55;pointer-events:none}
+.game.soon .go{font-size:13px;font-weight:700;color:var(--accent)}
+.ver{margin-top:26px;text-align:center;font-size:13px;color:var(--muted)}
+/* overlays */
+.ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--panel);border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom))}
+.sheet h2{margin:0 0 12px;text-align:center;font-size:21px}
+.cs{font-size:15.5px;line-height:1.65}.cs p{margin:0 0 6px}.cs h3{font-size:16px;margin:14px 0 4px}.cs ul{margin:0;padding-left:1.3em}.cs li{margin:2px 0}
+.csChk{display:flex;align-items:center;gap:12px;margin:18px 0 12px;padding:14px;border:2px solid var(--btn);border-radius:12px;font-size:17px;font-weight:700}
+.csChk input{width:26px;height:26px;accent-color:var(--num);flex:none;margin:0}
+.pri{width:100%;height:56px;font-size:19px;font-weight:800;background:var(--num);border-color:var(--num);color:var(--numTx)}
+.pri:disabled{opacity:.35}
+.plain{display:block;margin:10px auto 0;background:none;border:0;color:var(--muted);font-size:16px;text-decoration:underline;padding:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 2px;border-bottom:1px solid var(--line);font-size:17px}
+.seg{display:flex;gap:6px}.seg button{min-width:64px;height:42px;font-size:15px}.seg button.on{background:var(--num);border-color:var(--num);color:var(--numTx)}
+/* first screen: add to home */
+#inst{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px 20px}
+#inst.on{display:flex}
+#inst .box{width:100%;max-width:400px;text-align:center}
+#inst img{width:96px;height:96px;border-radius:22px;box-shadow:0 4px 14px rgba(0,0,0,.15);margin-bottom:14px}
+#inst h1{margin:0 0 18px;font-size:30px;letter-spacing:.12em}
+#inst .lead{margin:0 0 18px;font-size:20px;font-weight:700;line-height:1.5}
+.fx{list-style:none;margin:4px 0 26px;padding:14px 18px;border-radius:14px;background:var(--panel);border:1px solid var(--line);text-align:left}
+.fx li{display:flex;align-items:center;gap:12px;font-size:16px;line-height:1.5;padding:6px 0}.fx span{font-size:22px;width:28px;text-align:center}
+.a2h{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0 4px;font-size:16px}.a2h b{padding:6px 10px;border:1.5px solid var(--btn);border-radius:10px;background:var(--panel)}
+.a2note{margin:0;font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><button id="setBtn" aria-label="設定">⚙</button></div>
+  <div class="logo"><h1>あそびば</h1><div class="dots"><i></i><i></i><i></i><i></i></div><p>遊びたいゲームを選んでください</p></div>
+  <div class="games" id="games"></div>
+  <div class="ver" id="ver"></div>
+</div>
+
+<!-- add to home screen (browser only) -->
+<div id="inst"><div class="box">
+  <img src="icon-192.png" alt="">
+  <h1>あそびば</h1>
+  <p class="lead">ホーム画面にアイコンを追加して<br>アプリとして遊びましょう</p>
+  <ul class="fx"><li><span>📱</span>フルスクリーンでプレイできます</li><li><span>🎮</span>アイコン1つで、全部のゲームが遊べます</li><li><span>✨</span>新しいゲームも自動で増えていきます</li></ul>
+  <button class="pri" id="instGo">📲 ホーム画面に追加</button>
+  <div id="instSteps"></div>
+  <button class="plain" id="instSkip">今はブラウザで遊ぶ</button>
+</div></div>
+
+<!-- consent (shared by every game) -->
+<div class="ov" id="csOv"><div class="sheet">
+  <h2>📝 プレイデータの送信について</h2>
+  <div class="cs">
+    <p>より遊びやすいゲームにするため、プレイの記録を作者に送らせてください。集めた記録は<b>ゲームバランスの調整・改善のためだけ</b>に使います。ここで選んだ内容は、すべてのゲームに共通です。</p>
+    <h3>送る内容</h3>
+    <ul><li>KROPKI：問題をクリアしたときの記録（サイズ・難しさ・問題番号・タイム・チェックの回数）</li>
+        <li>Dungeon Chain：冒険の記録（職業・到達した階・ターン数・レベル・倒した数・覚えたスキル・倒された相手など）</li>
+        <li>この一覧：どのゲームを開いたか</li>
+        <li>ゲームのバージョンと、端末ごとにランダムに作られる番号（同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません）</li></ul>
+    <h3>送らないもの</h3>
+    <ul><li>名前・冒険者名・メールアドレス・電話番号・位置情報など、個人を特定できる情報</li>
+        <li>写真・連絡先・ほかのアプリなど、端末の中の情報</li></ul>
+    <h3>そのほか</h3>
+    <ul><li>記録を第三者に渡すことはありません</li>
+        <li>送るかどうかは、設定からいつでも変えられます</li>
+        <li>送らない場合も、ゲームはすべて同じように遊べます</li></ul>
+  </div>
+  <label class="csChk"><input type="checkbox" id="csChk"><span>上記の内容を確認しました</span></label>
+  <button class="pri" id="csYes" disabled>同意して送信する</button>
+  <button class="plain" id="csNo">送信しない</button>
+</div></div>
+
+<!-- settings -->
+<div class="ov" id="setOv"><div class="sheet">
+  <h2>⚙ 設定</h2>
+  <div class="row">プレイ記録を送る<div class="seg" id="shareSeg"><button data-v="1">ON</button><button data-v="0">OFF</button></div></div>
+  <div class="row" style="border:0"><button class="plain" id="csInfo" style="margin:0;padding:6px 0">送信内容について ›</button></div>
+  <button class="plain" id="setClose">閉じる</button>
+</div></div>
+
+<script>
+(function(){
+var VERSION = '0.1.0';
+/* ---- the games ---- */
+var GAMES = [
+  {id:'kropki', name:'KROPKI', desc:'白丸・黒丸を手がかりに数字を埋める、のんびりパズル', url:'/kropki/', icon:'/kropki/icon-192.png'},
+  {id:'dungeon-chain', name:'Dungeon Chain', desc:'タイルをつないで倒す、ダンジョン探索パズルRPG', url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png'},
+  {id:'lapis', name:'LAPIS', desc:'宝石を合わせて大きく育てる、円いパズル', soon:true}
+];
+var $ = function(id){ return document.getElementById(id); };
+try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
+function ls(k, v){ try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(e) { return null; } }
+
+/* ---- shared consent: one answer for every game on tkcy3.github.io ----
+   key 'tkcy3_consent_v1' = {"v":1,"ok":1|0,"at":time}. The games read it too.  */
+var CS_KEY = 'tkcy3_consent_v1', CS_VER = 1;
+function csGet(){ try { return JSON.parse(ls(CS_KEY) || 'null'); } catch(e) { return null; } }
+function csSet(ok){ ls(CS_KEY, JSON.stringify({v:CS_VER, ok:ok ? 1 : 0, at:Date.now()})); ls('tkcy3_share', ok ? '1' : '0'); }
+(function adoptOld(){   // answers already given inside KROPKI / Dungeon Chain count
+  if (csGet()) return;
+  var k = null; try { k = JSON.parse(ls('kropki-save-v1') || 'null'); } catch(e) {}
+  var a = k && k.consent, b = ls('dchain_consent_v1');
+  if (a === 1 || b === '1') csSet(true); else if (a === 0 || b === '0') csSet(false);
+})();
+function shareOn(){ var c = csGet(); return !!(c && c.ok && ls('tkcy3_share') !== '0'); }
+
+/* ---- play log (this list): which game was opened ---- */
+var LOG_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSenbltEWiWROUqsu99Ciqdh7uCLVHBIC84yF_Ad0k8K8kuF9g/formResponse', LOG_ENTRY = 'entry.20824307';
+function devId(){
+  var v = ls('tkcy3_dev');
+  if (!v) { var k = null; try { k = JSON.parse(ls('kropki-save-v1') || 'null'); } catch(e) {}
+    v = ls('dchain_dev_v1') || (k && k.dev) || Math.random().toString(36).slice(2, 10); ls('tkcy3_dev', v); }
+  return v;
+}
+function isApp(){ try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch(e) { return false; } }
+function log(ev, game){
+  if (!shareOn()) return;
+  try {
+    var body = new URLSearchParams(); body.append(LOG_ENTRY, JSON.stringify({v:VERSION, id:devId(), ev:ev, game:game || '', app:isApp() ? 1 : 0}));
+    var ok = false; try { ok = navigator.sendBeacon && navigator.sendBeacon(LOG_URL, body); } catch(e) {}
+    if (!ok) fetch(LOG_URL, {method:'POST', mode:'no-cors', body:body, keepalive:true}).catch(function(){});
+  } catch(e) {}
+}
+
+/* ---- list ---- */
+var box = $('games');
+GAMES.forEach(function(g){
+  var a = document.createElement(g.soon ? 'div' : 'a');
+  a.className = 'game' + (g.soon ? ' soon' : '');
+  if (!g.soon) { a.href = g.url; a.onclick = function(){ log('launch', g.id); }; }
+  a.innerHTML = (g.icon ? '<img src="' + g.icon + '" alt="">' : '<span class="ph">💎</span>') +
+    '<span class="tx"><b>' + g.name + '</b><small>' + g.desc + '</small></span><span class="go">' + (g.soon ? '準備中' : '›') + '</span>';
+  box.appendChild(a);
+});
+$('ver').textContent = 'v' + VERSION;
+
+/* ---- overlays ---- */
+function open(id){ $(id).classList.add('on'); }
+function close(id){ $(id).classList.remove('on'); }
+var csAfter = null;
+function openConsent(after){ csAfter = after || null; var c = csGet(); $('csChk').checked = !!(c && c.ok); $('csYes').disabled = !$('csChk').checked; open('csOv'); }
+$('csChk').onchange = function(){ $('csYes').disabled = !this.checked; };
+function csDone(ok){ csSet(ok); close('csOv'); var f = csAfter; csAfter = null; if (f) f(); if (ok) log('open'); }
+$('csYes').onclick = function(){ if ($('csChk').checked) csDone(true); };
+$('csNo').onclick = function(){ csDone(false); };
+
+function renderSet(){ [].forEach.call($('shareSeg').children, function(b){ b.classList.toggle('on', (b.dataset.v === '1') === shareOn()); }); }
+$('setBtn').onclick = function(){ renderSet(); open('setOv'); };
+$('setClose').onclick = function(){ close('setOv'); };
+$('setOv').onclick = function(e){ if (e.target === this) close('setOv'); };
+[].forEach.call($('shareSeg').children, function(b){ b.onclick = function(){
+  var c = csGet();
+  if (b.dataset.v === '1' && !(c && c.ok)) { openConsent(renderSet); return; }
+  ls('tkcy3_share', b.dataset.v); renderSet();
+}; });
+$('csInfo').onclick = function(){ openConsent(renderSet); };
+
+/* ---- add to home screen ---- */
+var A2H = null;
+addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); A2H = e; });
+addEventListener('appinstalled', function(){ A2H = null; instDone(); });
+function ios(){ return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+function steps(){ return ios() ? '<div class="a2h"><b>⬆️ 共有</b>›<b>➕ ホーム画面に追加</b></div><p class="a2note">Safariの下の ⬆️ から</p>'
+                              : '<div class="a2h"><b>⋮</b>›<b>📲 ホーム画面に追加</b></div><p class="a2note">Chromeの右上 ⋮ から</p>'; }
+function instDone(){ if (!$('inst').classList.contains('on')) return; $('instGo').style.display = 'none';
+  $('instSteps').innerHTML = '<div class="a2h"><b>✅ 追加しました</b></div><p class="a2note">ホーム画面の「あそびば」から開いてください</p>'; $('instSkip').textContent = 'このままブラウザで遊ぶ'; }
+$('instGo').onclick = function(){
+  if (A2H) { var e = A2H; A2H = null; e.prompt(); e.userChoice.then(function(r){ if (r && r.outcome === 'accepted') instDone(); else $('instSteps').innerHTML = steps(); }).catch(function(){}); return; }
+  $('instSteps').innerHTML = steps();
+};
+$('instSkip').onclick = function(){ close('inst'); next(); };
+
+/* first launch: (add to home) → consent → list */
+function next(){ if (!csGet()) openConsent(); else log('open'); }
+if (location.protocol === 'https:' && !isApp()) open('inst'); else next();
+
+if ('serviceWorker' in navigator) addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+})();
+</script>
+</body>
+</html>
