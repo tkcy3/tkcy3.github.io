@@ -3,41 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#e8e5de">
-<title>あそびば</title>
+<meta name="theme-color" content="#e6e3dc">
+<title>ゲームケース</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#e8e5de;--panel:#f6f4ef;--line:#bdb8ae;--fg:#2d2c2a;--muted:#7a7670;--btn:#a9a49b;--accent:#a8741a;--num:#56647a;--numTx:#f8f6f1}
-@media (prefers-color-scheme:dark){:root{--bg:#25282d;--panel:#2e3238;--line:#4b5058;--fg:#e8e6e1;--muted:#9a9fa7;--btn:#5b616a;--accent:#d9b25f;--num:#4a5566;--numTx:#f1efe9}}
+:root{--bg:#e6e3dc;--panel:#f6f4ef;--line:#bdb8ae;--fg:#2d2c2a;--muted:#7a7670;--btn:#a9a49b;--accent:#b0782a;--num:#4c6f74;--numTx:#f8f6f1;--shellA:#5f878b;--shellB:#4d7377;--emb:#eef3f1;--felt:#2f4c50;--plA:#efeeea;--plB:#d8d6cf;--plC:#b3b0a8;--plT:#5d5a54}
+@media (prefers-color-scheme:dark){:root{--bg:#272b2f;--panel:#2f3338;--line:#4b5058;--fg:#e8e6e1;--muted:#9a9fa7;--btn:#5b616a;--accent:#c98f3a;--num:#4f777b;--numTx:#f1efe9;--shellA:#456569;--shellB:#3a585c;--emb:#dfe8e6;--felt:#22383b;--plA:#d9d7d1;--plB:#c2bfb8;--plC:#9c998f;--plT:#4f4c46}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg)}
 body{font-family:"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 button{font:inherit;color:inherit;background:var(--panel);border:2px solid var(--btn);border-radius:12px;cursor:pointer}
 button:active{transform:scale(.97)}
-.wrap{max-width:520px;margin:0 auto;padding:12px 14px 28px}
-.top{display:flex;justify-content:flex-end}
-.top button{width:52px;height:52px;font-size:24px}
-.logo{text-align:center;margin:8px 0 26px}
-.logo h1{margin:0;font-size:40px;font-weight:900;letter-spacing:.14em}
-.logo .dots{display:flex;justify-content:center;gap:10px;margin-top:10px}
-.logo .dots i{width:14px;height:14px;border-radius:50%;border:3px solid var(--fg)}
-.logo .dots i:nth-child(even){background:var(--fg)}
-.logo p{margin:12px 0 0;color:var(--muted);font-size:15px}
-.games{display:flex;flex-direction:column;gap:12px}
-.game{display:flex;align-items:center;gap:16px;width:100%;padding:14px;text-align:left;text-decoration:none;color:inherit;background:var(--panel);border:2px solid var(--btn);border-radius:16px}
-.game:active{transform:scale(.98)}
-.game img,.game .ph{width:68px;height:68px;border-radius:16px;flex:none;object-fit:cover}
-.game .ph{display:flex;align-items:center;justify-content:center;font-size:34px;background:var(--bg)}
-.game .tx{flex:1;min-width:0}
-.game b{display:block;font-size:21px;font-weight:800;letter-spacing:.02em}
-.game small{display:block;margin-top:4px;font-size:14.5px;color:var(--muted);line-height:1.45}
-.game .go{font-size:22px;color:var(--muted);flex:none}
-.game.soon{opacity:.55;pointer-events:none}
-.game.soon .go{font-size:13px;font-weight:700;color:var(--accent)}
-.ver{margin-top:26px;text-align:center;font-size:13px;color:var(--muted)}
+.wrap{max-width:520px;margin:0 auto;padding:18px 14px 24px}
+/* the case: lid (title) + hinge + tray of cartridges */
+.case{background:linear-gradient(180deg,var(--shellA),var(--shellB));border-radius:28px;padding:0 10px 12px;box-shadow:0 8px 22px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.18),inset 0 -3px 0 rgba(0,0,0,.12)}
+.lid{text-align:center;padding:22px 0 18px}
+.lid h1{margin:0;font-size:30px;font-weight:900;letter-spacing:.22em;color:var(--emb);text-shadow:0 -1px 0 rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.14)}
+.hinge{height:8px;margin:0 18px 12px;border-radius:4px;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.12) 60%,rgba(255,255,255,.12))}
+.tray{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;padding:14px 12px 16px;border-radius:20px;background:var(--felt);background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px;box-shadow:inset 0 4px 10px rgba(0,0,0,.38)}
+.slot{display:flex;flex-direction:column;justify-content:flex-start;border-radius:16px;padding:6px 6px 8px;background:rgba(0,0,0,.2);box-shadow:inset 0 3px 6px rgba(0,0,0,.42);min-height:120px}
+.cart{position:relative;display:block;text-decoration:none;color:inherit;border-radius:13px 13px 11px 11px;padding:14px 8px 8px;background:linear-gradient(180deg,var(--plA),var(--plB));box-shadow:0 3px 0 var(--plC),0 6px 9px rgba(0,0,0,.32);transition:transform .26s cubic-bezier(.3,.7,.3,1),box-shadow .26s}
+.cart::before{content:"";position:absolute;top:5px;left:50%;width:42%;height:4px;transform:translateX(-50%);border-radius:2px;background:repeating-linear-gradient(90deg,var(--plC) 0 3px,transparent 3px 7px)}
+.cart:active{transform:translateY(-3px)}
+.cart.out{transform:translateY(-26px);box-shadow:0 3px 0 var(--plC),0 16px 18px rgba(0,0,0,.28)}
+.label{display:block;border-radius:9px;overflow:hidden;background:var(--lb,#ddd);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.label img,.label .ph{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.label .ph{display:flex;align-items:center;justify-content:center;font-size:56px}
+.label .nm{display:block;padding:7px 4px 8px;text-align:center;font-size:clamp(11.5px,3.45vw,17px);font-weight:900;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:clip;color:var(--lt,#222)}
+.tg{display:block;margin-top:7px;text-align:center;font-size:13.5px;line-height:1.35;color:var(--plT);min-height:1.35em}
+.cart.soon{pointer-events:none}
+.cart.soon .label{opacity:.72}
+.cart.soon .ribbon{position:absolute;top:22px;left:50%;transform:translateX(-50%);padding:3px 12px;border-radius:99px;background:var(--accent);color:#fff;font-size:13px;font-weight:800;white-space:nowrap;z-index:1}
+.foot{display:flex;align-items:center;justify-content:space-between;margin:18px 4px 0}
+.foot .ver{font-size:13px;color:var(--muted)}
+.foot button{height:48px;padding:0 18px;font-size:17px;font-weight:700}
 /* overlays */
 .ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
 .ov.on{display:flex}
@@ -66,18 +68,20 @@ button:active{transform:scale(.97)}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><button id="setBtn" aria-label="設定">⚙</button></div>
-  <div class="logo"><h1>あそびば</h1><div class="dots"><i></i><i></i><i></i><i></i></div><p>遊びたいゲームを選んでください</p></div>
-  <div class="games" id="games"></div>
-  <div class="ver" id="ver"></div>
+  <div class="case">
+    <div class="lid"><h1 id="ttl"></h1></div>
+    <div class="hinge"></div>
+    <div class="tray" id="games"></div>
+  </div>
+  <div class="foot"><span class="ver" id="ver"></span><button id="setBtn">⚙ 設定</button></div>
 </div>
 
 <!-- add to home screen (browser only) -->
 <div id="inst"><div class="box">
   <img src="icon-192.png" alt="">
-  <h1>あそびば</h1>
+  <h1 id="instTtl"></h1>
   <p class="lead">ホーム画面にアイコンを追加して<br>アプリとして遊びましょう</p>
-  <ul class="fx"><li><span>📱</span>フルスクリーンでプレイできます</li><li><span>🎮</span>アイコン1つで、全部のゲームが遊べます</li><li><span>✨</span>新しいゲームも自動で増えていきます</li></ul>
+  <ul class="fx"><li><span>📱</span>フルスクリーンでプレイできます</li><li><span>🎮</span>アイコン1つで全部のゲームが遊べます</li><li><span>✨</span>新しいゲームも自動で増えます</li></ul>
   <button class="pri" id="instGo">📲 ホーム画面に追加</button>
   <div id="instSteps"></div>
   <button class="plain" id="instSkip">今はブラウザで遊ぶ</button>
@@ -91,7 +95,7 @@ button:active{transform:scale(.97)}
     <h3>送る内容</h3>
     <ul><li>KROPKI：問題をクリアしたときの記録（サイズ・難しさ・問題番号・タイム・チェックの回数）</li>
         <li>Dungeon Chain：冒険の記録（職業・到達した階・ターン数・レベル・倒した数・覚えたスキル・倒された相手など）</li>
-        <li>この一覧：どのゲームを開いたか</li>
+        <li>ゲームケース：どのゲームを開いたか</li>
         <li>ゲームのバージョンと、端末ごとにランダムに作られる番号（同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません）</li></ul>
     <h3>送らないもの</h3>
     <ul><li>名前・冒険者名・メールアドレス・電話番号・位置情報など、個人を特定できる情報</li>
@@ -116,12 +120,13 @@ button:active{transform:scale(.97)}
 
 <script>
 (function(){
-var VERSION = '0.1.0';
+var VERSION = '0.2.0';
+var NAME = 'ゲームケース';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
-  {id:'kropki', name:'KROPKI', desc:'白丸・黒丸を手がかりに数字を埋める、のんびりパズル', url:'/kropki/', icon:'/kropki/icon-192.png'},
-  {id:'dungeon-chain', name:'Dungeon Chain', desc:'タイルをつないで倒す、ダンジョン探索パズルRPG', url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png'},
-  {id:'lapis', name:'LAPIS', desc:'宝石を合わせて大きく育てる、円いパズル', soon:true}
+  {id:'kropki', name:'KROPKI', desc:'数字パズル', url:'/kropki/', icon:'/kropki/icon-192.png', lb:'#f3efe4', lt:'#2d2c2a'},
+  {id:'dungeon-chain', name:'Dungeon Chain', desc:'ダンジョンRPG', url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png', lb:'#2a2119', lt:'#f0c766'},
+  {id:'lapis', name:'LAPIS', desc:'宝石パズル', emoji:'💎', lb:'#3e5f8f', lt:'#eef3fb', soon:true}
 ];
 var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
@@ -158,16 +163,27 @@ function log(ev, game){
   } catch(e) {}
 }
 
-/* ---- list ---- */
+/* ---- the case: one cartridge per game, plus empty slots for games to come ---- */
+$('ttl').textContent = $('instTtl').textContent = NAME; document.title = NAME;
 var box = $('games');
-GAMES.forEach(function(g){
-  var a = document.createElement(g.soon ? 'div' : 'a');
-  a.className = 'game' + (g.soon ? ' soon' : '');
-  if (!g.soon) { a.href = g.url; a.onclick = function(){ log('launch', g.id); }; }
-  a.innerHTML = (g.icon ? '<img src="' + g.icon + '" alt="">' : '<span class="ph">💎</span>') +
-    '<span class="tx"><b>' + g.name + '</b><small>' + g.desc + '</small></span><span class="go">' + (g.soon ? '準備中' : '›') + '</span>';
-  box.appendChild(a);
-});
+var SLOTS = Math.max(4, GAMES.length + (GAMES.length % 2 ? 1 : 2));   // always a little room left
+for (var i = 0; i < SLOTS; i++) {
+  var slot = document.createElement('div'); slot.className = 'slot'; box.appendChild(slot);
+  var g = GAMES[i]; if (!g) continue;
+  var c = document.createElement(g.soon ? 'div' : 'a');
+  c.className = 'cart' + (g.soon ? ' soon' : '');
+  c.style.setProperty('--lb', g.lb); c.style.setProperty('--lt', g.lt);
+  c.innerHTML = (g.soon ? '<span class="ribbon">準備中</span>' : '') +
+    '<span class="label">' + (g.icon ? '<img src="' + g.icon + '" alt="">' : '<span class="ph">' + g.emoji + '</span>') +
+    '<span class="nm">' + g.name + '</span></span><span class="tg">' + g.desc + '</span>';
+  if (!g.soon) { c.href = g.url; c.onclick = (function(g, c){ return function(e){
+    e.preventDefault(); if (c.classList.contains('out')) return;
+    log('launch', g.id); c.classList.add('out');           // pull the cartridge out, then start
+    setTimeout(function(){ location.href = g.url; }, 280);
+  }; })(g, c); }
+  slot.appendChild(c);
+}
+addEventListener('pageshow', function(){ [].forEach.call(document.querySelectorAll('.cart.out'), function(c){ c.classList.remove('out'); }); });
 $('ver').textContent = 'v' + VERSION;
 
 /* ---- overlays ---- */
@@ -199,7 +215,7 @@ function ios(){ return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigato
 function steps(){ return ios() ? '<div class="a2h"><b>⬆️ 共有</b>›<b>➕ ホーム画面に追加</b></div><p class="a2note">Safariの下の ⬆️ から</p>'
                               : '<div class="a2h"><b>⋮</b>›<b>📲 ホーム画面に追加</b></div><p class="a2note">Chromeの右上 ⋮ から</p>'; }
 function instDone(){ if (!$('inst').classList.contains('on')) return; $('instGo').style.display = 'none';
-  $('instSteps').innerHTML = '<div class="a2h"><b>✅ 追加しました</b></div><p class="a2note">ホーム画面の「あそびば」から開いてください</p>'; $('instSkip').textContent = 'このままブラウザで遊ぶ'; }
+  $('instSteps').innerHTML = '<div class="a2h"><b>✅ 追加しました</b></div><p class="a2note">ホーム画面の「' + NAME + '」から開いてください</p>'; $('instSkip').textContent = 'このままブラウザで遊ぶ'; }
 $('instGo').onclick = function(){
   if (A2H) { var e = A2H; A2H = null; e.prompt(); e.userChoice.then(function(r){ if (r && r.outcome === 'accepted') instDone(); else $('instSteps').innerHTML = steps(); }).catch(function(){}); return; }
   $('instSteps').innerHTML = steps();
