@@ -95,6 +95,7 @@ button:active{transform:scale(.97)}
     <h3>送る内容</h3>
     <ul><li>KROPKI：問題をクリアしたときの記録（サイズ・難しさ・問題番号・タイム・チェックの回数）</li>
         <li>Dungeon Chain：冒険の記録（職業・到達した階・ターン数・レベル・倒した数・覚えたスキル・倒された相手など）</li>
+        <li>LAPIS：ゲームが終わったときの記録（点数・いちばん大きい宝石・手数・最大連鎖・選んだ加護・戻すと－を使った回数・プレイ時間）</li>
         <li>ゲームケース：どのゲームを開いたか</li>
         <li>ゲームのバージョンと、端末ごとにランダムに作られる番号（同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません）</li></ul>
     <h3>送らないもの</h3>
@@ -120,13 +121,13 @@ button:active{transform:scale(.97)}
 
 <script>
 (function(){
-var VERSION = '0.2.0';
+var VERSION = '0.2.1';
 var NAME = 'ゲームケース';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
   {id:'kropki', name:'KROPKI', desc:'数字パズル', url:'/kropki/', icon:'/kropki/icon-192.png', lb:'#f3efe4', lt:'#2d2c2a'},
   {id:'dungeon-chain', name:'Dungeon Chain', desc:'ダンジョンRPG', url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png', lb:'#2a2119', lt:'#f0c766'},
-  {id:'lapis', name:'LAPIS', desc:'宝石パズル', emoji:'💎', lb:'#3e5f8f', lt:'#eef3fb', soon:true}
+  {id:'lapis', name:'LAPIS', desc:'宝石パズル', url:'/lapis/', icon:'/lapis/icon-192.png', lb:'#3e5f8f', lt:'#eef3fb'}
 ];
 var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
