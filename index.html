@@ -135,7 +135,7 @@ button:active{transform:scale(.97)}
 
 <script>
 (function(){
-var VERSION = '0.3.4';
+var VERSION = '0.3.5';
 var NAME = 'ゲームコレクション';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
@@ -144,7 +144,7 @@ var GAMES = [
   {id:'dungeon-chain', name:'Dungeon Chain', desc:'タイルをつないで、地下深くへ', tags:['⚔️ RPG','💀 くり返し挑戦'], url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png',
    lb:'#2a2119', sb:'#3a2c22', st:'#f6ead2', pb:'#d9a23a', pd:'#9c6f1f', pat:'linear-gradient(45deg,#f0c766 2px,transparent 2px),linear-gradient(-45deg,#f0c766 2px,transparent 2px)'},
   {id:'lapis', name:'LAPIS', desc:'星を合わせて、銀河まで育てる', tags:['🪐 パズル','🌌 宇宙'], url:'/lapis/', icon:'/lapis/icon-192.png',
-   lb:'#2e3d78', sb:'#263266', st:'#eef2fb', pb:'#5a64a8', pd:'#3a4380', pat:'radial-gradient(circle,#ffffff 1.6px,transparent 2.6px)'}
+   lb:'#0f1430', sb:'#151b3a', st:'#e4e8f4', pb:'#2a3466', pd:'#1c2350', pat:'radial-gradient(circle,rgba(201,210,240,.55) 1.2px,transparent 2px)'}
 ];
 var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
