@@ -3,7 +3,7 @@
   "short_name": "ゲームコレクション",
   "start_url": "/",
   "scope": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#f1ece3",
   "theme_color": "#f1ece3",
@@ -26,5 +26,9 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "display_override": [
+    "fullscreen",
+    "standalone"
   ]
 }

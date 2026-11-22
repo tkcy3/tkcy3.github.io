@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f1ece3">
 <title>ゲームコレクション</title>
 <link rel="manifest" href="manifest.json">
@@ -137,7 +137,7 @@ button:active{transform:scale(.97)}
 
 <script>
 (function(){
-var VERSION = '0.3.7';
+var VERSION = '0.4.0';
 var NAME = 'ゲームコレクション';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
@@ -173,7 +173,7 @@ function devId(){
     v = ls('dchain_dev_v1') || (k && k.dev) || Math.random().toString(36).slice(2, 10); ls('tkcy3_dev', v); }
   return v;
 }
-function isApp(){ try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch(e) { return false; } }
+function isApp(){ try { return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true; } catch(e) { return false; } }
 function log(ev, game){
   if (!shareOn()) return;
   try {
