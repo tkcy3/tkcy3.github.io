@@ -58,9 +58,17 @@ button:active{transform:scale(.97)}
 .play:active{transform:translateY(3px);box-shadow:0 2px 0 var(--pd)}
 .play:disabled{background:var(--btn);box-shadow:none;opacity:.6;letter-spacing:.04em}
 .ver{margin-top:12px;text-align:center;font-size:12.5px;color:var(--muted)}
-.ver button{background:none;border:0;padding:6px 8px;font:inherit;color:inherit;text-decoration:underline}
-.cl{margin:0 0 6px;padding:0;list-style:none}.cl>li{padding:12px 2px;border-bottom:1px solid var(--line)}.cl>li:last-child{border:0}
-.cl b{font-size:16px}.cl small{margin-left:8px;color:var(--muted);font-size:13px}.cl ul{margin:6px 0 0;padding-left:1.2em;font-size:15.5px;line-height:1.6}
+.ver button{background:none;border:0;padding:6px 10px;font:inherit;color:inherit}
+.ver button.new{color:var(--accent);font-weight:700}
+.chip{display:inline-block;padding:3px 12px;border-radius:99px;background:rgba(127,127,127,.18);font-size:14px;font-weight:700}
+.newb{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;vertical-align:2px}
+.newb.hidden{display:none}
+.rowBtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 2px;font:inherit;font-size:16px;color:var(--fg);text-align:left}
+.rowBtn .rs{color:var(--muted);font-size:14px}
+.chg h3{font-size:16px;margin:12px 0 4px;color:var(--accent)}
+.chg ul{margin:0;padding-left:20px;font-size:15px;line-height:1.7}
+.chg details{margin:0 0 4px}
+.chg summary{font-size:15px;color:var(--muted);padding:8px 0;cursor:pointer}
 /* overlays */
 .ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
 .ov.on{display:flex}
@@ -133,9 +141,10 @@ button:active{transform:scale(.97)}
 
 <!-- what's new -->
 <div class="ov" id="clOv"><div class="sheet">
-  <h2>📝 更新内容</h2>
-  <ul class="cl" id="clList"></ul>
-  <button class="plain" id="clClose">閉じる</button>
+  <h2>📋 更新内容</h2>
+  <p style="text-align:center;margin:0 0 6px"><span class="chip" id="chgVer"></span></p>
+  <div class="chg" id="chgBody"></div>
+  <button class="plain" id="clClose">戻る</button>
 </div></div>
 
 <!-- settings -->
@@ -143,13 +152,14 @@ button:active{transform:scale(.97)}
   <h2>⚙ 設定</h2>
   <div class="row">プレイ記録を送る<div class="seg" id="shareSeg"><button data-v="1">ON</button><button data-v="0">OFF</button></div></div>
   <div class="row"><button class="plain" id="csInfo" style="margin:0;padding:6px 0">送信内容について ›</button></div>
-  <div class="row" style="border:0"><button class="plain" id="clInfo" style="margin:0;padding:6px 0">📝 更新内容 ›</button></div>
+  <button class="rowBtn" id="clInfo" style="border:0"><span>📋 更新内容<span class="newb hidden" id="stVerNew">NEW</span></span><span class="rs">v<span id="stVerNo"></span> ›</span></button>
   <button class="plain" id="setClose">閉じる</button>
 </div></div>
 
 <script>
 (function(){
 var CHANGELOG = [
+  {v:'0.5.4', d:'2026-11-23', items:['📋 更新内容の見せ方を、ほかのゲームとそろえました']},
   {v:'0.5.3', d:'2026-11-23', items:['🌀 アプリのアイコンを、ゲームの世界へつながるワープゲートのデザインにしました']},
   {v:'0.5.1', d:'2026-11-23', items:['📝 ポータルの更新内容を見られるようにしました（設定と、いちばん下のバージョン表示から）']},
   {v:'0.5.0', d:'2026-11-23', items:['🏷️ 名前を「ゲームポータル」に変えました']},
@@ -237,7 +247,7 @@ $('play').onclick = function(){ var g = GAMES[cur]; if (g.soon) return; log('lau
   st.addEventListener('touchend', function(e){ if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(cur + (dx < 0 ? 1 : -1), dx < 0 ? 'r' : 'l'); }, {passive:true});
 })();
-$('ver').innerHTML = '<button id="verBtn">v' + VERSION + ' ・ 更新内容</button>';
+$('ver').innerHTML = '<button id="verBtn"></button>';
 
 /* ---- overlays ---- */
 function open(id){ $(id).classList.add('on'); }
@@ -259,10 +269,27 @@ $('setOv').onclick = function(e){ if (e.target === this) close('setOv'); };
   ls('tkcy3_share', b.dataset.v); renderSet();
 }; });
 $('csInfo').onclick = function(){ openConsent(renderSet); };
-function openCl(){ $('clList').innerHTML = CHANGELOG.map(function(c){ return '<li><b>v' + c.v + '</b><small>' + c.d.replace(/-/g, '/') + '</small><ul>' + c.items.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul></li>'; }).join(''); open('clOv'); }
-$('clInfo').onclick = openCl; $('verBtn').onclick = openCl;
-$('clClose').onclick = function(){ close('clOv'); };
-$('clOv').onclick = function(e){ if (e.target === this) close('clOv'); };
+/* ---- version & changelog (same look as KROPKI / Dungeon Chain / LAPIS) ---- */
+function chgByDay(){ var out = []; CHANGELOG.forEach(function(c){ var g = out.filter(function(x){ return x.d === c.d; })[0]; if (!g) { g = {d:c.d, items:[]}; out.push(g); } g.items = g.items.concat(c.items); }); return out; }
+function verUnseen(){ var v = ls('tkcy3_portal_seen_ver'); if (v === VERSION) return false; if (!v) { ls('tkcy3_portal_seen_ver', VERSION); return false; } return true; }
+function refreshVer(){ var n = verUnseen(), b = $('verBtn'); b.textContent = 'v' + VERSION + (n ? ' ・ 更新内容を見る' : ''); b.classList.toggle('new', n); $('stVerNo').textContent = VERSION; $('stVerNew').classList.toggle('hidden', !n); }
+var chgBack = null;
+function openCl(back){
+  ls('tkcy3_portal_seen_ver', VERSION); refreshVer();
+  var top = CHANGELOG[0];
+  var days = chgByDay().map(function(g){ return {d:g.d, items:g.items.filter(function(x){ return top.items.indexOf(x) < 0; })}; }).filter(function(g){ return g.items.length; });
+  var ul = function(items){ return '<ul>' + items.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul>'; };
+  var dt = function(d){ return d.slice(5).replace('-', '/'); };
+  $('chgVer').textContent = 'v' + VERSION;
+  $('chgBody').innerHTML = '<h3>✨ ' + dt(top.d) + '</h3>' + ul(top.items) + days.map(function(g){ return '<details><summary>' + dt(g.d) + '</summary>' + ul(g.items) + '</details>'; }).join('');
+  chgBack = back || null; open('clOv');
+}
+function clDone(){ close('clOv'); var f = chgBack; chgBack = null; if (f) f(); }
+$('clInfo').onclick = function(){ close('setOv'); openCl(function(){ renderSet(); open('setOv'); }); };
+$('verBtn').onclick = function(){ openCl(); };
+$('clClose').onclick = clDone;
+$('clOv').onclick = function(e){ if (e.target === this) clDone(); };
+refreshVer();
 
 /* ---- add to home screen ---- */
 var A2H = null;
