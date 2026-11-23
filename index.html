@@ -161,6 +161,7 @@ button:active{transform:scale(.97)}
 <script>
 (function(){
 var CHANGELOG = [
+  {v:'0.5.6', d:'2026-11-23', items:['🔀 ゲームの並びを、作った順（Dungeon Chain・KROPKI・LAPIS）にしました']},
   {v:'0.5.5', d:'2026-11-23', items:['🔢 それぞれのゲームのいまのバージョンを、ポータルに表示するようにしました（更新が届いたか分かります）']},
   {v:'0.5.4', d:'2026-11-23', items:['📋 更新内容の見せ方を、ほかのゲームとそろえました']},
   {v:'0.5.3', d:'2026-11-23', items:['🌀 アプリのアイコンを、ゲームの世界へつながるワープゲートのデザインにしました']},
@@ -175,10 +176,10 @@ var VERSION = CHANGELOG[0].v;
 var NAME = 'ゲームポータル';   // the list's name (title, install screen)
 /* ---- the games ---- */
 var GAMES = [
-  {id:'kropki', name:'KROPKI', desc:'白丸・黒丸をヒントに、数字を埋める', tags:['🔢 数字を埋める','🐈‍⬛ のんびり'], url:'/kropki/', icon:'/kropki/icon-192.png',
-   lb:'#f3efe4', sb:'#efe6d2', st:'#3a332b', light:1, pb:'#56647a', pd:'#3e495a', pat:'radial-gradient(circle at 25% 25%,#2d2c2a 5px,transparent 6px),radial-gradient(circle at 75% 75%,transparent 4px,#2d2c2a 5px,#2d2c2a 7px,transparent 8px)'},
   {id:'dungeon-chain', name:'Dungeon Chain', desc:'タイルをつないで、地下深くへ', tags:['🔗 一筆でつなぐ','⚔️ 冒険'], url:'/dungeon-chain/', icon:'/dungeon-chain/icon-192.png',
    lb:'#2a2119', sb:'#3a2c22', st:'#f6ead2', pb:'#d9a23a', pd:'#9c6f1f', pat:'linear-gradient(45deg,#f0c766 2px,transparent 2px),linear-gradient(-45deg,#f0c766 2px,transparent 2px)'},
+  {id:'kropki', name:'KROPKI', desc:'白丸・黒丸をヒントに、数字を埋める', tags:['🔢 数字を埋める','🐈‍⬛ のんびり'], url:'/kropki/', icon:'/kropki/icon-192.png',
+   lb:'#f3efe4', sb:'#efe6d2', st:'#3a332b', light:1, pb:'#56647a', pd:'#3e495a', pat:'radial-gradient(circle at 25% 25%,#2d2c2a 5px,transparent 6px),radial-gradient(circle at 75% 75%,transparent 4px,#2d2c2a 5px,#2d2c2a 7px,transparent 8px)'},
   {id:'lapis', name:'LAPIS', desc:'星を合わせて、銀河まで育てる', tags:['🪐 合体させる','🌙 チル'], url:'/lapis/', icon:'/lapis/icon-192.png',
    lb:'#141d52', sb:'#1a2566', st:'#eef3ff', pb:'#2f6fd6', pd:'#234f9e', pat:'radial-gradient(circle,rgba(201,210,240,.55) 1.2px,transparent 2px)'}
 ];
