@@ -1,6 +1,6 @@
 {
-  "name": "ゲームコレクション",
-  "short_name": "ゲームコレクション",
+  "name": "ゲームポータル",
+  "short_name": "ゲームポータル",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",
