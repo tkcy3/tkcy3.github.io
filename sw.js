@@ -1,6 +1,6 @@
 // ゲームポータル (game list): network first, cache as fallback (offline). Only the list's own files —
 // each game (/kropki/, /dungeon-chain/ …) has its own service worker.
-const C = 'asobiba-v19', OWN = ['/', '/index.html', '/manifest.json', '/icon-192-v3.png', '/icon-512-v3.png', '/apple-touch-icon-v3.png', '/favicon-v3.png', '/icon-maskable-512-v3.png'];
+const C = 'asobiba-v20', OWN = ['/', '/index.html', '/manifest.json', '/icon-192-v3.png', '/icon-512-v3.png', '/apple-touch-icon-v3.png', '/favicon-v3.png', '/icon-maskable-512-v3.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(OWN)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('asobiba-') && k !== C).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
