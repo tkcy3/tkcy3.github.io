@@ -40,7 +40,7 @@ button:active{transform:scale(.97)}
 .stage.lightbg::before{opacity:.07}
 .stage.lightbg .tags span{background:rgba(0,0,0,.06);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.12)}
 .stage .in{animation:in .32s ease both}
-.stage .in.l{animation-name:inL}.stage .in.r{animation-name:inR}
+.stage .in.l{animation-name:inL}.stage .in.r{animation-name:inR}.stage .in.none{animation:none}
 @keyframes in{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 @keyframes inL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
 @keyframes inR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
@@ -51,6 +51,8 @@ button:active{transform:scale(.97)}
 .tile .ic{width:100%;aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--lb);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 3px 8px rgba(0,0,0,.16);transition:transform .2s,box-shadow .2s;outline:4px solid transparent;outline-offset:3px}
 .tile .ic img{width:100%;height:100%;object-fit:cover;display:block}
 .tile small{font-size:13.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tile .tv{margin-top:-4px;font-size:12px;font-weight:600;color:var(--muted);opacity:.85;min-height:1.2em}
+.stage .sv{display:inline-block;margin-top:12px;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:700;opacity:.75;box-shadow:inset 0 0 0 1.5px currentColor}
 .tile.on .ic{transform:translateY(-4px);outline-color:var(--ring);box-shadow:0 8px 14px rgba(0,0,0,.2)}
 .tile.on small{color:var(--fg)}
 .tile.soon .ic{filter:saturate(.5);opacity:.75}
@@ -159,6 +161,7 @@ button:active{transform:scale(.97)}
 <script>
 (function(){
 var CHANGELOG = [
+  {v:'0.5.5', d:'2026-11-23', items:['🔢 それぞれのゲームのいまのバージョンを、ポータルに表示するようにしました（更新が届いたか分かります）']},
   {v:'0.5.4', d:'2026-11-23', items:['📋 更新内容の見せ方を、ほかのゲームとそろえました']},
   {v:'0.5.3', d:'2026-11-23', items:['🌀 アプリのアイコンを、ゲームの世界へつながるワープゲートのデザインにしました']},
   {v:'0.5.1', d:'2026-11-23', items:['📝 ポータルの更新内容を見られるようにしました（設定と、いちばん下のバージョン表示から）']},
@@ -222,7 +225,7 @@ var cur = 0; (function(){ var k = ls('tkcy3_pick'); GAMES.forEach(function(g, i)
 var pick = $('pick');
 GAMES.forEach(function(g, i){
   var t = document.createElement('button'); t.className = 'tile' + (g.soon ? ' soon' : '');
-  t.innerHTML = '<span class="ic" style="--lb:' + g.lb + '">' + art(g) + '</span><small>' + g.name + '</small>';
+  t.innerHTML = '<span class="ic" style="--lb:' + g.lb + '">' + art(g) + '</span><small>' + g.name + '</small><span class="tv" id="tv_' + g.id + '"></span>';
   t.onclick = function(){ show(i); };
   pick.appendChild(t);
 });
@@ -233,13 +236,27 @@ function show(i, dir){
   st.classList.toggle('lightbg', !!g.light);
   st.innerHTML = (g.soon ? '<span class="soonTag">準備中</span>' : '') +
     '<div class="in ' + dir + '"><div class="art" style="margin:0 auto">' + art(g) + '</div><h2>' + g.name + '</h2><p>' + g.desc + '</p>' +
-    '<div class="tags">' + g.tags.map(function(x){ return '<span>' + x + '</span>'; }).join('') + '</div></div>';
+    '<div class="tags">' + g.tags.map(function(x){ return '<span>' + x + '</span>'; }).join('') + '</div>' + (g.ver ? '<span class="sv">v' + g.ver + '</span>' : '') + '</div>';
   [].forEach.call(pick.children, function(t, k){ t.classList.toggle('on', k === cur); });
   var pl = $('play'); pl.disabled = !!g.soon; pl.textContent = g.soon ? 'もうすぐ遊べます' : '▶ あそぶ';
   pl.style.setProperty('--pb', g.pb); pl.style.setProperty('--pd', g.pd); pl.style.setProperty('--pt', '#fff');
   if (!g.soon) ls('tkcy3_pick', g.id);
 }
 show(cur);
+/* each game's current version, read from the game's own page (shows whether an update is live) */
+function verOf(html){
+  var p = [/(?:VERSION|VER)\s*=\s*'([\d.]+)'/, /CHANGELOG\s*=\s*\[\s*\{\s*v:\s*'([\d.]+)'/, /CHANGES\s*=\s*\[\s*\[\s*'([\d.]+)'/];
+  for (var i = 0; i < p.length; i++) { var m = html.match(p[i]); if (m) return m[1]; }
+  return null;
+}
+GAMES.forEach(function(g, i){
+  if (!g.url) return;
+  fetch(g.url, {cache:'no-cache'}).then(function(r){ return r.ok ? r.text() : ''; }).then(function(h){
+    var v = verOf(h); if (!v) return;
+    g.ver = v; $('tv_' + g.id).textContent = 'v' + v;
+    if (i === cur) show(cur, 'none');
+  }).catch(function(){});
+});
 $('play').onclick = function(){ var g = GAMES[cur]; if (g.soon) return; log('launch', g.id); location.href = g.url; };
 (function(){   // swipe the stage to flip through games
   var x0 = null, y0 = 0, st = $('stage');
