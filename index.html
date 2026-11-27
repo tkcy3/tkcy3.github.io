@@ -49,11 +49,11 @@ button:active{transform:scale(.97)}
 @keyframes inR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
 .soonTag{position:absolute;top:16px;right:16px;padding:5px 12px;border-radius:99px;background:var(--accent);color:#fff;font-size:14px;font-weight:800}
 /* picker: one tile per game */
-.pick{display:flex;justify-content:center;gap:20px;margin:16px 0 14px;padding:8px 8px 0}
-.tile{flex:1;max-width:88px;background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--fg)}
+.pick{display:flex;justify-content:center;gap:14px;margin:16px 0 14px;padding:8px 8px 0}
+.tile{flex:1 1 0;min-width:0;max-width:84px;background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--fg)}
 .tile .ic{width:100%;aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--lb);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 3px 8px rgba(0,0,0,.16);transition:transform .2s,box-shadow .2s;outline:4px solid transparent;outline-offset:3px}
 .tile .ic img{width:100%;height:100%;object-fit:cover;display:block}
-.tile small{font-size:13.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tile small{font-size:12.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.2;overflow-wrap:anywhere}
 .tile .tv{margin-top:-4px;font-size:12px;font-weight:600;color:var(--muted);opacity:.85;min-height:1.2em}
 .stage .sv{display:inline-block;margin-top:12px;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:700;opacity:.75;box-shadow:inset 0 0 0 1.5px currentColor}
 .tile.on .ic{transform:translateY(-4px);outline-color:var(--ring);box-shadow:0 8px 14px rgba(0,0,0,.2)}
@@ -166,6 +166,7 @@ button:active{transform:scale(.97)}
 <script>
 (function(){
 var CHANGELOG = [
+  {v:'0.6.1', d:'2026-11-28', items:['🔲 ゲームのアイコンの大きさを、どれも同じにそろえました']},
   {v:'0.6.0', d:'2026-11-28', items:['🧱 たわーばとるが遊べるようになりました（なんでも積みあげる、ほのぼのタワーバトル。ネット対戦もできます）']},
   {v:'0.5.7', d:'2026-11-23', items:['📤 ゲームポータルを教えるボタンを付けました（右上の📤、または設定から）']},
   {v:'0.5.6', d:'2026-11-23', items:['🔀 ゲームの並びを、作った順（Dungeon Chain・KROPKI・LAPIS）にしました']},
