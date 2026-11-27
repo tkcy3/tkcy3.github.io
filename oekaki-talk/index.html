@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#EAD3A2">
 <title>おえかきトーク</title>
 <link rel="icon" href="favicon.png">
@@ -44,12 +44,39 @@ label.lb{display:block;font-size:14px;color:var(--sub);margin:4px 2px}
 .msg.info{background:#E2EEFA;color:#1F4E7F}
 .small{font-size:13px;color:var(--sub);line-height:1.5}
 
-/* 通話画面 */
-#scr-call{justify-content:flex-start}
-.stage{display:flex;gap:18px;justify-content:center;align-items:flex-start;width:100%;max-width:720px;flex-wrap:wrap}
+/* 通話画面：縦は上下、横は左右に並べる */
+#scr-call{height:100vh;height:100dvh;padding:10px 10px calc(10px + env(safe-area-inset-bottom));gap:10px}
+#scr-call.on{display:grid;align-items:stretch;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+.callMain{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0;overflow:auto;padding:16px 4px 4px}
+@media (orientation:landscape){
+  #scr-call.on{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:minmax(0,1fr)}
+  .callMain{justify-content:center}
+}
+/* 文字を打っているあいだは チャットを大きく */
+#scr-call.typing.on{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+#scr-call.typing .callMain{display:none}
+.chat{display:flex;flex-direction:column;min-height:0;background:var(--card);border-radius:20px;box-shadow:0 3px 0 var(--line);overflow:hidden}
+.chatHead{display:flex;align-items:center;gap:8px;padding:8px 14px;font-weight:bold;border-bottom:2px solid #F1E2C2}
+.chatHead .cst{margin-left:auto;font-size:13px;color:var(--sub);font-weight:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chatLog{flex:1;min-height:60px;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain}
+.chatEmpty{margin:auto;color:var(--sub);font-size:14px;text-align:center}
+.bub{max-width:80%;padding:8px 12px;border-radius:16px;line-height:1.45;word-break:break-word;font-size:17px;position:relative}
+.bub.me{align-self:flex-end;background:#FFD9A8;border-bottom-right-radius:4px}
+.bub.you{align-self:flex-start;background:#CFE5FF;border-bottom-left-radius:4px}
+.bub.sys{align-self:center;background:none;color:var(--sub);font-size:13px;padding:2px}
+.bub .st{display:block;text-align:right;font-size:11px;color:var(--sub);margin-top:2px}
+.stamps{display:flex;gap:8px;overflow-x:auto;padding:8px 10px 2px;scrollbar-width:none}
+.stamps::-webkit-scrollbar{display:none}
+.stamps button{flex:none;border:0;border-radius:999px;background:#F1E2C2;color:var(--ink);font:inherit;font-weight:bold;font-size:15px;padding:8px 12px}
+.stamps button:active{transform:translateY(2px)}
+.chatIn{display:flex;gap:8px;padding:8px 10px 10px}
+.chatIn input{flex:1;min-width:0;font-size:17px;padding:10px 12px;border-radius:999px}
+.sendBtn{flex:none;width:48px;height:48px;border-radius:50%;border:0;background:var(--blue);display:flex;align-items:center;justify-content:center}
+.sendBtn svg{width:24px;height:24px}
+.stage{display:flex;gap:18px;justify-content:center;align-items:flex-start;width:100%;max-width:720px}
 .player{display:flex;flex-direction:column;align-items:center;gap:6px;width:130px}
-.av{width:104px;height:104px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;
-  font-size:46px;font-weight:bold;border:5px solid #fff;position:relative;transition:box-shadow .08s linear}
+.av{width:84px;height:84px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:38px;font-weight:bold;border:5px solid #fff;position:relative;transition:box-shadow .08s linear}
 .av.me{background:#FFE3B8} .av.you{background:#CFE5FF}
 .av .mute{position:absolute;right:-6px;bottom:-6px;width:38px;height:38px;border-radius:50%;background:var(--red);
   display:none;align-items:center;justify-content:center;border:3px solid #fff}
@@ -59,7 +86,7 @@ label.lb{display:block;font-size:14px;color:var(--sub);margin:4px 2px}
 .status{font-size:20px;font-weight:bold;text-align:center;min-height:30px}
 .st-ok{color:var(--green)} .st-warn{color:#C07A00} .st-bad{color:var(--red)}
 .controls{display:flex;gap:14px;align-items:center;justify-content:center;width:100%;max-width:520px}
-.micbtn{width:92px;height:92px;border-radius:50%;border:0;background:var(--green);display:flex;align-items:center;justify-content:center;
+.micbtn{width:80px;height:80px;border-radius:50%;border:0;background:var(--green);display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 0 rgba(0,0,0,.2);flex:none}
 .micbtn svg{width:46px;height:46px}
 .micbtn.off{background:var(--red)}
@@ -93,8 +120,13 @@ ol.steps li{margin:6px 0}
   border-radius:999px;font-size:16px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
 @media (orientation:landscape) and (max-height:500px){
-  #scr-call{flex-direction:row;flex-wrap:wrap;align-content:flex-start;justify-content:center}
-  .av{width:84px;height:84px;font-size:38px}
+  .av{width:64px;height:64px;font-size:30px;border-width:4px}
+  .player{width:110px} .status{font-size:17px;min-height:24px}
+  .micbtn{width:64px;height:64px} .micbtn svg{width:34px;height:34px}
+  .hang{width:54px;height:54px}
+}
+@media (orientation:portrait) and (max-height:700px){
+  .av{width:64px;height:64px;font-size:30px;border-width:4px}
 }
 </style>
 </head>
@@ -104,7 +136,7 @@ ol.steps li{margin:6px 0}
 <section id="scr-start" class="scr on">
   <a class="tPortal hidden" id="tPortal" href="/">‹ 一覧</a>
   <h1>🎨 おえかきトーク</h1>
-  <div class="ver">試作版：まずは通話のテストだけ できます　v<span id="ver"></span></div>
+  <div class="ver">試作版：通話と チャットの テスト　v<span id="ver"></span></div>
 
   <div class="card">
     <label class="lb" for="name">なまえ（ニックネーム）</label>
@@ -184,6 +216,7 @@ ol.steps li{margin:6px 0}
 
 <!-- ③ 通話 -->
 <section id="scr-call" class="scr">
+ <div class="callMain">
   <div class="stage">
     <div class="player">
       <div class="av me" id="avMe"><span id="avMeTxt">?</span>
@@ -249,6 +282,19 @@ ol.steps li{margin:6px 0}
       <div id="log"></div>
     </div>
   </details>
+ </div>
+
+ <div class="chat" id="chat">
+  <div class="chatHead">💬 チャット <span class="cst" id="chatSt"></span></div>
+  <div class="chatLog" id="chatLog"><div class="chatEmpty" id="chatEmpty">ここに チャットが でるよ<br>したの ボタンでも おくれるよ</div></div>
+  <div class="stamps" id="stamps"></div>
+  <form class="chatIn" id="chatForm" autocomplete="off">
+    <input type="text" id="chatText" maxlength="60" placeholder="メッセージを かく" enterkeyhint="send">
+    <button class="sendBtn" id="chatSend" type="submit" aria-label="おくる">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-7z"/><path d="M11 13l9-9"/></svg>
+    </button>
+  </form>
+ </div>
 </section>
 
 <!-- ⑤ マイクのなおしかた -->
@@ -284,7 +330,7 @@ ol.steps li{margin:6px 0}
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script>
 'use strict';
-const VERSION = '0.2.1';
+const VERSION = '0.3.0';
 const PREFIX = 'oekaki2p-v1-';
 // TURNは使わない。PeerJSの初期設定にはPeerJS提供のTURNが含まれるため、STUNだけに上書きする。
 const ICE_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
@@ -414,7 +460,7 @@ async function createRoom(resumeCode) {
     }
   }
   if (!p) throw { friendly: 'へやを つくれませんでした。すこし まってから もういちど ためしてね。' };
-  S.peer = p; S.peerReady = true; wireHost(p); saveSession();
+  S.peer = p; S.peerReady = true; wireHost(p); saveSession(); loadChat();
   $('waitCode').textContent = S.room;
   S.phase = S.everConnected ? 'reconnecting' : 'waiting';
   S.startAt = Date.now();
@@ -459,7 +505,7 @@ function wireHost(p) {
 async function joinRoom(code) {
   S.role = 'guest'; S.room = code; S.attempt = 0;
   show('scr-call'); S.phase = 'connecting'; S.startAt = Date.now(); render();
-  S.peer = await makePeer(); S.peerReady = true; S.fullCount = 0; saveSession();
+  S.peer = await makePeer(); S.peerReady = true; S.fullCount = 0; saveSession(); loadChat();
   requestWakeLock();
   connectToHost();
 }
@@ -498,7 +544,9 @@ function onData(d) {
   S.lastSeen = Date.now();
   if (!d || typeof d !== 'object') return;
   switch (d.t) {
-    case 'hello': S.remoteName = String(d.name || 'あいて').slice(0, 10); S.remoteMicOn = d.mic !== false; render(); break;
+    case 'hello': S.remoteName = String(d.name || 'あいて').slice(0, 10); S.remoteMicOn = d.mic !== false; render(); flushOutbox(); break;
+    case 'chat': onChat(d); break;
+    case 'ack': onAck(d.id); break;
     case 'mic': S.remoteMicOn = !!d.on; render(); break;
     case 'bye': log('相手が通話を切った'); endByRemote(); break;
     case 'leaving': log('相手がページを閉じた/再読み込み'); S.lastSeen = 0; lost(); break;
@@ -536,13 +584,14 @@ function markConnected() {
   const was = S.phase;
   S.phase = 'connected'; S.lastSeen = Date.now(); S.fullCount = 0;
   if (!S.everConnected) { S.everConnected = true; S.ttc = (Date.now() - S.startAt) / 1000; }
+  if (was !== 'connected') addSys(was === 'reconnecting' ? 'また つながったよ' : 'つながったよ');
   if (was === 'reconnecting') { toast('また つながったよ！'); log('再接続 成功（' + ((Date.now() - S.lostAt) / 1000).toFixed(1) + '秒）'); }
   show('scr-call'); render();
 }
 function lost() {
   if (S.phase === 'connected') {
     S.phase = 'reconnecting'; S.reconnects++; S.lostAt = Date.now();
-    log('切断を検知 → 再接続へ');
+    log('切断を検知 → 再接続へ'); addSys('きれちゃった… つなぎなおしています');
     S.route = null; S.remoteLevel = 0;
     if (S.role === 'guest') S.lastAttempt = 0; // すぐ試す
   }
@@ -606,6 +655,7 @@ function teardown(keepMic) {
   if (!keepMic && S.localStream) { S.localStream.getTracks().forEach(t => t.stop()); S.localStream = null; S.analyser = null; }
   clearSession(); releaseWakeLock();
   S.everConnected = false; S.route = null; S.reconnects = 0; S.ttc = null; S.remoteName = '';
+  clearChat();
   $('btnHang').classList.remove('armed'); $('hangHint').textContent = '';
 }
 function endByRemote() {
@@ -753,6 +803,7 @@ function render() {
     else { w.textContent = '🟡 サーバーに つないでいます…'; w.className = 'status st-warn'; }
   }
 
+  $('chatSt').textContent = S.phase === 'connected' ? '🟢 ' + (S.remoteName || 'あいて') + ' と つながっています' : S.phase === 'reconnecting' ? '🟡 つなぎなおし中（あとで とどくよ）' : '';
   $('dRole').textContent = S.role === 'host' ? 'ホスト（へやを つくった）' : S.role === 'guest' ? 'ゲスト（はいった）' : '-';
   $('dRoom').textContent = S.room || '-';
   $('dSig').textContent = !S.peer ? '-' : S.peer.destroyed ? '破棄' : S.peer.disconnected ? '切断中（通話は続く）' : '接続中';
@@ -872,6 +923,62 @@ $('btnEndRetry').addEventListener('click', () => {
   const role = S.retryRole, room = S.retryRoom; show('scr-start');
   if (role === 'guest' && room) start({ k: 'guest', room }); else if (role === 'host') start({ k: 'host', room });
 });
+
+/* ---------- チャット ----------
+   送るときは id をつけ、相手からの ack（受けとったよ）が来るまで「おくっています」。
+   切れているあいだに書いたものは、つながりなおしたときに まとめて送る。同じ id は二度表示しない。 */
+const STAMPS = ['👍 わかった！', '🤔 むずかしい…', '💡 ヒントちょうだい', '😂 わらった', '👏 すごい！', '🙏 もういっかい', '⏳ ちょっとまって'];
+S.chat = []; S.seen = new Set(); S.msgSeq = 0;
+S.myTag = Math.random().toString(36).slice(2, 7);
+function chatKey() { return 'oekaki2p-chat-' + (S.room || ''); }
+function saveChat() { try { sessionStorage.setItem(chatKey(), JSON.stringify({ chat: S.chat.slice(-150), seen: [...S.seen].slice(-300) })); } catch (e) {} }
+function loadChat() {
+  try { const o = JSON.parse(sessionStorage.getItem(chatKey()) || 'null'); if (o) { S.chat = o.chat || []; S.seen = new Set(o.seen || []); } } catch (e) {}
+  renderChat();
+}
+function clearChat() { try { sessionStorage.removeItem(chatKey()); } catch (e) {} S.chat = []; S.seen = new Set(); renderChat(); }
+function addSys(text) { S.chat.push({ id: 's' + Date.now() + Math.random(), from: 'sys', text }); renderChat(); saveChat(); }
+function sendChat(text) {
+  text = String(text || '').trim().slice(0, 60);
+  if (!text) return;
+  const m = { id: S.myTag + '-' + (++S.msgSeq) + '-' + Date.now().toString(36), from: 'me', text, st: 'sending' };
+  S.chat.push(m); renderChat(); saveChat();
+  if (S.conn && S.conn.open) send({ t: 'chat', id: m.id, text: m.text });
+}
+function flushOutbox() { S.chat.forEach(m => { if (m.from === 'me' && m.st === 'sending') send({ t: 'chat', id: m.id, text: m.text }); }); }
+function onChat(d) {
+  const id = String(d.id || ''); if (!id) return;
+  send({ t: 'ack', id });                       // 二重に届いても ack は毎回かえす
+  if (S.seen.has(id)) return;                   // 同じメッセージは一度だけ表示
+  S.seen.add(id);
+  S.chat.push({ id, from: 'you', text: String(d.text || '').slice(0, 60) });
+  renderChat(); saveChat();
+  if (navigator.vibrate && document.visibilityState === 'visible') { try { navigator.vibrate(30); } catch (e) {} }
+}
+function onAck(id) { const m = S.chat.find(x => x.id === id && x.from === 'me'); if (m && m.st !== 'sent') { m.st = 'sent'; renderChat(); saveChat(); } }
+function renderChat() {
+  const log = $('chatLog'); const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
+  log.textContent = '';
+  if (!S.chat.length) {
+    const e = document.createElement('div'); e.className = 'chatEmpty'; e.innerHTML = 'ここに チャットが でるよ<br>したの ボタンでも おくれるよ'; log.appendChild(e); return;
+  }
+  S.chat.slice(-150).forEach(m => {
+    const b = document.createElement('div'); b.className = 'bub ' + m.from; b.textContent = m.text;
+    if (m.from === 'me') { const st = document.createElement('span'); st.className = 'st'; st.textContent = m.st === 'sent' ? '✓ とどいた' : '…おくっています'; b.appendChild(st); }
+    log.appendChild(b);
+  });
+  if (nearBottom || (S.chat.length && S.chat[S.chat.length - 1].from === 'me')) log.scrollTop = log.scrollHeight;
+}
+(function setupChat() {
+  const box = $('stamps');
+  STAMPS.forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.onclick = () => sendChat(t); box.appendChild(b); });
+  $('chatForm').addEventListener('submit', e => { e.preventDefault(); const i = $('chatText'); sendChat(i.value); i.value = ''; i.focus(); });
+  // 送信ボタンを押してもキーボードが閉じないように（閉じると画面が動いて押しそこねるため）
+  $('chatSend').addEventListener('pointerdown', e => { if (document.activeElement === $('chatText')) e.preventDefault(); });
+  const call = $('scr-call');
+  $('chatText').addEventListener('focus', () => { call.classList.add('typing'); setTimeout(() => { $('chatLog').scrollTop = 1e9; }, 300); });
+  $('chatText').addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('chatText')) call.classList.remove('typing'); }, 120));
+})();
 
 /* ---------- マイクの許可を やりなおす ---------- */
 const UA = navigator.userAgent;
