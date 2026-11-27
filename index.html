@@ -166,6 +166,7 @@ button:active{transform:scale(.97)}
 <script>
 (function(){
 var CHANGELOG = [
+  {v:'0.6.0', d:'2026-11-28', items:['🧱 たわーばとるが遊べるようになりました（なんでも積みあげる、ほのぼのタワーバトル。ネット対戦もできます）']},
   {v:'0.5.7', d:'2026-11-23', items:['📤 ゲームポータルを教えるボタンを付けました（右上の📤、または設定から）']},
   {v:'0.5.6', d:'2026-11-23', items:['🔀 ゲームの並びを、作った順（Dungeon Chain・KROPKI・LAPIS）にしました']},
   {v:'0.5.5', d:'2026-11-23', items:['🔢 それぞれのゲームのいまのバージョンを、ポータルに表示するようにしました（更新が届いたか分かります）']},
@@ -187,7 +188,9 @@ var GAMES = [
   {id:'kropki', name:'KROPKI', desc:'白丸・黒丸をヒントに、数字を埋める', tags:['🔢 数字を埋める','🐈‍⬛ のんびり'], url:'/kropki/', icon:'/kropki/icon-192.png',
    lb:'#f3efe4', sb:'#efe6d2', st:'#3a332b', light:1, pb:'#56647a', pd:'#3e495a', pat:'radial-gradient(circle at 25% 25%,#2d2c2a 5px,transparent 6px),radial-gradient(circle at 75% 75%,transparent 4px,#2d2c2a 5px,#2d2c2a 7px,transparent 8px)'},
   {id:'lapis', name:'LAPIS', desc:'星を合わせて、銀河まで育てる', tags:['🪐 合体させる','🌙 チル'], url:'/lapis/', icon:'/lapis/icon-192.png',
-   lb:'#141d52', sb:'#1a2566', st:'#eef3ff', pb:'#2f6fd6', pd:'#234f9e', pat:'radial-gradient(circle,rgba(201,210,240,.55) 1.2px,transparent 2px)'}
+   lb:'#141d52', sb:'#1a2566', st:'#eef3ff', pb:'#2f6fd6', pd:'#234f9e', pat:'radial-gradient(circle,rgba(201,210,240,.55) 1.2px,transparent 2px)'},
+  {id:'tower-battle', name:'たわーばとる', desc:'なんでも積みあげて、ほのぼのバトル', tags:['🧱 積みあげる','🌤️ ほのぼの'], url:'/tower-battle/', icon:'/tower-battle/icon-192.png',
+   lb:'#cfeaf6', sb:'#dff0f8', st:'#3b4a54', light:1, pb:'#ef8a6f', pd:'#b9543a', pat:'radial-gradient(circle,rgba(255,255,255,.85) 2.5px,transparent 3.5px)'}
 ];
 var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
