@@ -49,11 +49,11 @@ button:active{transform:scale(.97)}
 @keyframes inR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
 .soonTag{position:absolute;top:16px;right:16px;padding:5px 12px;border-radius:99px;background:var(--accent);color:#fff;font-size:14px;font-weight:800}
 /* picker: one tile per game */
-.pick{display:flex;justify-content:center;gap:20px;margin:16px 0 14px;padding:8px 8px 0}
-.tile{flex:1;max-width:88px;background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--fg)}
+.pick{display:flex;justify-content:center;gap:14px;margin:16px 0 14px;padding:8px 8px 0}
+.tile{flex:1;min-width:0;max-width:88px;background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--fg)}
 .tile .ic{width:100%;aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--lb);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 3px 8px rgba(0,0,0,.16);transition:transform .2s,box-shadow .2s;outline:4px solid transparent;outline-offset:3px}
 .tile .ic img{width:100%;height:100%;object-fit:cover;display:block}
-.tile small{font-size:13.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tile small{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .tile .tv{margin-top:-4px;font-size:12px;font-weight:600;color:var(--muted);opacity:.85;min-height:1.2em}
 .stage .sv{display:inline-block;margin-top:12px;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:700;opacity:.75;box-shadow:inset 0 0 0 1.5px currentColor}
 .tile.on .ic{transform:translateY(-4px);outline-color:var(--ring);box-shadow:0 8px 14px rgba(0,0,0,.2)}
@@ -166,6 +166,7 @@ button:active{transform:scale(.97)}
 <script>
 (function(){
 var CHANGELOG = [
+  {v:'0.6.0', d:'2026-11-27', items:['🎨 おえかきトークを追加しました（試作版）。いまは、ふたりで通話するテストだけできます']},
   {v:'0.5.7', d:'2026-11-23', items:['📤 ゲームポータルを教えるボタンを付けました（右上の📤、または設定から）']},
   {v:'0.5.6', d:'2026-11-23', items:['🔀 ゲームの並びを、作った順（Dungeon Chain・KROPKI・LAPIS）にしました']},
   {v:'0.5.5', d:'2026-11-23', items:['🔢 それぞれのゲームのいまのバージョンを、ポータルに表示するようにしました（更新が届いたか分かります）']},
@@ -187,7 +188,9 @@ var GAMES = [
   {id:'kropki', name:'KROPKI', desc:'白丸・黒丸をヒントに、数字を埋める', tags:['🔢 数字を埋める','🐈‍⬛ のんびり'], url:'/kropki/', icon:'/kropki/icon-192.png',
    lb:'#f3efe4', sb:'#efe6d2', st:'#3a332b', light:1, pb:'#56647a', pd:'#3e495a', pat:'radial-gradient(circle at 25% 25%,#2d2c2a 5px,transparent 6px),radial-gradient(circle at 75% 75%,transparent 4px,#2d2c2a 5px,#2d2c2a 7px,transparent 8px)'},
   {id:'lapis', name:'LAPIS', desc:'星を合わせて、銀河まで育てる', tags:['🪐 合体させる','🌙 チル'], url:'/lapis/', icon:'/lapis/icon-192.png',
-   lb:'#141d52', sb:'#1a2566', st:'#eef3ff', pb:'#2f6fd6', pd:'#234f9e', pat:'radial-gradient(circle,rgba(201,210,240,.55) 1.2px,transparent 2px)'}
+   lb:'#141d52', sb:'#1a2566', st:'#eef3ff', pb:'#2f6fd6', pd:'#234f9e', pat:'radial-gradient(circle,rgba(201,210,240,.55) 1.2px,transparent 2px)'},
+  {id:'oekaki-talk', name:'おえかきトーク', desc:'しゃべりながら描いて、当てっこ', tags:['🎨 描いて当てる','📞 ふたりで通話'], url:'/oekaki-talk/', icon:'/oekaki-talk/icon-192.png',
+   lb:'#EAD3A2', sb:'#F1DFB8', st:'#4A3826', light:1, pb:'#E0703A', pd:'#B4542A', pat:'radial-gradient(circle at 25% 25%,#D9534F 4px,transparent 5px),radial-gradient(circle at 75% 75%,#3A86D8 4px,transparent 5px)'}
 ];
 var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
@@ -316,7 +319,7 @@ $('clOv').onclick = function(e){ if (e.target === this) clDone(); };
 refreshVer();
 
 /* ---- tell someone about the portal: the phone's share sheet, or copy the link ---- */
-var SHARE = {title:'ゲームポータル', text:'スマホで遊べるパズルゲーム集です。ホーム画面に追加して遊べます。', url:'https://tkcy3.github.io/'};
+var SHARE = {title:'ゲームポータル', text:'スマホで遊べるゲーム集です。ホーム画面に追加して遊べます。', url:'https://tkcy3.github.io/'};
 var toastT = null;
 function toast(msg){ var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('on'); }, 2600); }
 function copyLink(){

@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#EAD3A2">
+<title>おえかきトーク</title>
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --bg:#EAD3A2; --card:#FFF6E3; --ink:#4A3826; --sub:#8A7155;
+  --green:#3BA55C; --blue:#3A86D8; --red:#D9534F; --yellow:#F2B705; --line:#D7BC86;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Maru Gothic ProN","Rounded Mplus 1c","Noto Sans JP",system-ui,sans-serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.scr{display:none;min-height:100%;padding:16px;flex-direction:column;align-items:center;gap:14px}
+.scr.on{display:flex}
+h1{font-size:24px;margin:8px 0 0}
+.ver{font-size:12px;color:var(--sub)}
+.card{background:var(--card);border-radius:20px;padding:16px;width:100%;max-width:520px;
+  box-shadow:0 3px 0 var(--line)}
+.card p{margin:6px 0;line-height:1.6}
+.big{font-size:18px}
+.btn{border:0;border-radius:999px;font:inherit;font-weight:bold;font-size:20px;color:#fff;
+  padding:16px 22px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 4px 0 rgba(0,0,0,.18);cursor:pointer}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.btn svg{width:28px;height:28px;flex:none}
+.b-green{background:var(--green)} .b-blue{background:var(--blue)} .b-red{background:var(--red)}
+.b-gray{background:#9C8A73} .b-yellow{background:var(--yellow);color:#4A3826}
+.row{display:flex;gap:10px;width:100%}
+.row>*{flex:1}
+input[type=text],input[type=tel],select{font:inherit;font-size:20px;width:100%;padding:12px 14px;border-radius:14px;
+  border:2px solid var(--line);background:#fff;color:var(--ink)}
+input.code{font-size:30px;letter-spacing:.3em;text-align:center;font-weight:bold}
+label.lb{display:block;font-size:14px;color:var(--sub);margin:4px 2px}
+.codebox{font-size:46px;font-weight:bold;letter-spacing:.18em;text-align:center;margin:4px 0}
+.msg{border-radius:14px;padding:10px 14px;margin-top:10px;line-height:1.6;display:none}
+.msg.on{display:block}
+.msg.err{background:#FBE0DD;color:#8B2A23}
+.msg.info{background:#E2EEFA;color:#1F4E7F}
+.small{font-size:13px;color:var(--sub);line-height:1.5}
+
+/* 通話画面 */
+#scr-call{justify-content:flex-start}
+.stage{display:flex;gap:18px;justify-content:center;align-items:flex-start;width:100%;max-width:720px;flex-wrap:wrap}
+.player{display:flex;flex-direction:column;align-items:center;gap:6px;width:130px}
+.av{width:104px;height:104px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:46px;font-weight:bold;border:5px solid #fff;position:relative;transition:box-shadow .08s linear}
+.av.me{background:#FFE3B8} .av.you{background:#CFE5FF}
+.av .mute{position:absolute;right:-6px;bottom:-6px;width:38px;height:38px;border-radius:50%;background:var(--red);
+  display:none;align-items:center;justify-content:center;border:3px solid #fff}
+.av .mute svg{width:20px;height:20px}
+.av.muted .mute{display:flex}
+.pname{font-weight:bold;font-size:16px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{font-size:20px;font-weight:bold;text-align:center;min-height:30px}
+.st-ok{color:var(--green)} .st-warn{color:#C07A00} .st-bad{color:var(--red)}
+.controls{display:flex;gap:14px;align-items:center;justify-content:center;width:100%;max-width:520px}
+.micbtn{width:92px;height:92px;border-radius:50%;border:0;background:var(--green);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 0 rgba(0,0,0,.2);flex:none}
+.micbtn svg{width:46px;height:46px}
+.micbtn.off{background:var(--red)}
+.micbtn:active{transform:translateY(3px)}
+.vol{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 16px}
+.vol svg{width:28px;height:28px;flex:none}
+input[type=range]{width:100%;height:34px;accent-color:var(--blue)}
+.hang{width:64px;height:64px;border-radius:50%;border:0;background:var(--red);display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.hang svg{width:32px;height:32px}
+.hang.armed{outline:4px solid var(--yellow)}
+details{width:100%;max-width:520px}
+summary{font-weight:bold;cursor:pointer;padding:6px 2px}
+table.diag{width:100%;border-collapse:collapse;font-size:14px}
+table.diag td{padding:4px 6px;border-bottom:1px solid #EEDDBB;vertical-align:top}
+table.diag td:first-child{color:var(--sub);white-space:nowrap;width:9em}
+#log{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#2E2419;color:#F2E6CF;border-radius:10px;
+  padding:8px;max-height:180px;overflow:auto;white-space:pre-wrap;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#4A3826;color:#fff;padding:10px 18px;
+  border-radius:999px;font-size:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media (orientation:landscape) and (max-height:500px){
+  #scr-call{flex-direction:row;flex-wrap:wrap;align-content:flex-start;justify-content:center}
+  .av{width:84px;height:84px;font-size:38px}
+}
+</style>
+</head>
+<body>
+
+<!-- ① はじめ -->
+<section id="scr-start" class="scr on">
+  <h1>🎨 おえかきトーク</h1>
+  <div class="ver">試作版：まずは通話のテストだけ できます　v<span id="ver"></span></div>
+
+  <div class="card">
+    <label class="lb" for="name">なまえ（ニックネーム）</label>
+    <input type="text" id="name" maxlength="10" placeholder="たとえば たかし">
+  </div>
+
+  <div class="card">
+    <p class="big">🎤 このゲームは、あいてと <b>おはなし</b> しながら あそぶよ。</p>
+    <p>ボタンを おすと「マイクを つかってもいい？」と きかれるので、<b>「許可」</b>を おしてね。</p>
+    <p class="small">こえは あいての スマホに ちょくせつ とどきます。どこにも ほぞんされません。</p>
+  </div>
+
+  <div class="card" id="resumeCard" style="display:none">
+    <p>さっきの へや（<b id="resumeCode"></b>）に もどれるよ。</p>
+    <button class="btn b-yellow" id="btnResume">↩️ さっきの へやに もどる</button>
+  </div>
+
+  <div class="card">
+    <button class="btn b-green" id="btnCreate">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+      へやを つくる
+    </button>
+  </div>
+
+  <div class="card" id="joinCard">
+    <label class="lb" for="code">へやばんごう（6けた）</label>
+    <input type="tel" id="code" class="code" maxlength="6" inputmode="numeric" placeholder="000000">
+    <div style="height:10px"></div>
+    <button class="btn b-blue" id="btnJoin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
+      へやに はいる
+    </button>
+  </div>
+
+  <div class="msg err" id="startErr"></div>
+</section>
+
+<!-- ② ホスト待機 -->
+<section id="scr-wait" class="scr">
+  <h1>あいてを まっています</h1>
+  <div class="card" style="text-align:center">
+    <div class="small">へやばんごう</div>
+    <div class="codebox" id="waitCode">------</div>
+    <p class="small">この ばんごうか、したの ボタンで しょうたいを おくってね</p>
+    <div class="row" style="margin-top:8px">
+      <button class="btn b-blue" id="btnShare">📨 しょうたいを おくる</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn b-gray" id="btnCopyUrl" style="font-size:16px">🔗 URLを コピー</button>
+    </div>
+  </div>
+  <div class="status st-warn" id="waitStatus">じゅんびちゅう…</div>
+  <div class="card small">
+    ・この がめんを ひらいたまま まってね（ほかの アプリに うつると つながりにくく なります）<br>
+    ・イヤホンを つかうと、こえが きれいに きこえます
+  </div>
+  <button class="btn b-gray" id="btnCancelWait" style="max-width:520px">やめる</button>
+</section>
+
+<!-- ③ 通話 -->
+<section id="scr-call" class="scr">
+  <div class="stage">
+    <div class="player">
+      <div class="av me" id="avMe"><span id="avMeTxt">?</span>
+        <div class="mute"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M3 3l18 18"/><path d="M9 9v3a3 3 0 0 0 5 2"/><path d="M15 9.5V5a3 3 0 0 0-6-.5"/></svg></div>
+      </div>
+      <div class="pname" id="nmMe">じぶん</div>
+    </div>
+    <div class="player">
+      <div class="av you" id="avYou"><span id="avYouTxt">?</span>
+        <div class="mute"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M3 3l18 18"/><path d="M9 9v3a3 3 0 0 0 5 2"/><path d="M15 9.5V5a3 3 0 0 0-6-.5"/></svg></div>
+      </div>
+      <div class="pname" id="nmYou">あいて</div>
+    </div>
+  </div>
+
+  <div class="status" id="callStatus">つないでいます…</div>
+  <div class="msg info" id="callInfo"></div>
+  <button class="btn b-yellow" id="btnTapAudio" style="display:none;max-width:520px">🔊 タップして こえを だす</button>
+
+  <div class="controls">
+    <button class="micbtn" id="btnMic" aria-label="マイク">
+      <svg id="icMicOn" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg>
+      <svg id="icMicOff" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M3 3l18 18"/><path d="M9 9v2a3 3 0 0 0 5 2.2"/><path d="M15 9.4V5a3 3 0 0 0-5.9-.7"/><path d="M5 11a7 7 0 0 0 11.5 5.3"/><path d="M19 11a7 7 0 0 1-.6 2.8"/><path d="M12 18v4"/></svg>
+    </button>
+    <div class="vol">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4A3826" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg>
+      <input type="range" id="vol" min="0" max="100" value="100" aria-label="おとの おおきさ">
+    </div>
+    <button class="hang" id="btnHang" aria-label="きる">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M12 9c-3.2 0-6.2.8-8.6 2.3-.6.4-.9 1.1-.8 1.8l.4 2.2c.1.7.8 1.2 1.5 1.1l3-.5c.6-.1 1.1-.6 1.2-1.2l.2-1.6c1.9-.5 4.3-.5 6.2 0l.2 1.6c.1.6.6 1.1 1.2 1.2l3 .5c.7.1 1.4-.4 1.5-1.1l.4-2.2c.1-.7-.2-1.4-.8-1.8C18.2 9.8 15.2 9 12 9z"/></svg>
+    </button>
+  </div>
+  <div class="small" id="hangHint" style="min-height:18px"></div>
+
+  <details id="diagBox">
+    <summary>🔧 しらべる（テスト用）</summary>
+    <div class="card" style="padding:10px">
+      <table class="diag">
+        <tr><td>やくわり</td><td id="dRole">-</td></tr>
+        <tr><td>へや</td><td id="dRoom">-</td></tr>
+        <tr><td>サーバー</td><td id="dSig">-</td></tr>
+        <tr><td>音声の接続</td><td id="dIce">-</td></tr>
+        <tr><td>データの接続</td><td id="dData">-</td></tr>
+        <tr><td>経路</td><td id="dRoute">-</td></tr>
+        <tr><td>候補の種類</td><td id="dCands">-</td></tr>
+        <tr><td>おうふく時間</td><td id="dRtt">-</td></tr>
+        <tr><td>パケットロス</td><td id="dLoss">-</td></tr>
+        <tr><td>つながるまで</td><td id="dTtc">-</td></tr>
+        <tr><td>再接続の回数</td><td id="dRec">0</td></tr>
+        <tr><td>じぶんの回線</td><td id="dNet">-</td></tr>
+      </table>
+      <label class="lb" for="env" style="margin-top:10px">テストした環境</label>
+      <select id="env">
+        <option value="">（えらんでね）</option>
+        <option>1. 自宅Wi-Fi同士</option>
+        <option>2. 自宅Wi-Fiと携帯回線</option>
+        <option>3. 携帯回線同士</option>
+        <option>4. 異なる場所のWi-Fi同士</option>
+        <option>参考: 同じWi-Fi</option>
+      </select>
+      <div style="height:10px"></div>
+      <button class="btn b-blue" id="btnReport" style="font-size:16px">📋 テスト結果を コピー</button>
+      <div id="log"></div>
+    </div>
+  </details>
+</section>
+
+<!-- ④ 失敗・終了 -->
+<section id="scr-end" class="scr">
+  <h1 id="endTitle">つながりませんでした</h1>
+  <div class="card"><p id="endMsg"></p></div>
+  <button class="btn b-blue" id="btnEndReport" style="max-width:520px">📋 テスト結果を コピー</button>
+  <button class="btn b-green" id="btnEndRetry" style="max-width:520px">🔁 もういちど ためす</button>
+  <button class="btn b-gray" id="btnEndHome" style="max-width:520px">はじめに もどる</button>
+</section>
+
+<audio id="remoteAudio" autoplay playsinline></audio>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script>
+'use strict';
+const VERSION = '0.1.0';
+const PREFIX = 'oekaki2p-v1-';
+// TURNは使わない。PeerJSの初期設定にはPeerJS提供のTURNが含まれるため、STUNだけに上書きする。
+const ICE_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
+const PEER_OPTS = { config: ICE_CONFIG, debug: 1 };
+const HB_INTERVAL = 2000;      // 生存確認の間隔
+const DEAD_AFTER = 7000;       // これだけ無音なら切断とみなす
+const FIRST_TRY_TIMEOUT = 20000;
+const MAX_FIRST_TRIES = 3;
+const SKEY = 'oekaki2p-session';
+
+const $ = id => document.getElementById(id);
+const S = {
+  role: null, room: null, peer: null, conn: null, call: null, localStream: null,
+  micOn: true, remoteMicOn: true, name: '', remoteName: '',
+  phase: 'idle', // idle | waiting | connecting | connected | reconnecting | failed | ended
+  lastSeen: 0, lastAttempt: 0, attempt: 0, everConnected: false,
+  startAt: 0, ttc: null, reconnects: 0, lostAt: 0,
+  route: null, cands: '', rtt: null, loss: null, remoteLevel: 0, localLevel: 0,
+  audioCtx: null, analyser: null, gain: null, gainSrc: null, useGain: false, remoteStream: null,
+  hostIdRetryUntil: 0, wakeLock: null, logs: [], hookedPcs: new WeakSet(), lastEnergy: null,
+};
+$('ver').textContent = VERSION;
+
+/* ---------- 共通 ---------- */
+function log(m) {
+  const t = new Date();
+  const line = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')} ${m}`;
+  S.logs.push(line); if (S.logs.length > 200) S.logs.shift();
+  const el = $('log'); el.textContent = S.logs.slice(-60).join('\n'); el.scrollTop = el.scrollHeight;
+  console.log('[oekaki]', m);
+}
+function show(id) { document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), 2200); }
+function err(id, m) { const e = $(id); e.innerHTML = m; e.classList.toggle('on', !!m); }
+function randCode() { const a = new Uint32Array(1); crypto.getRandomValues(a); return String(a[0] % 1000000).padStart(6, '0'); }
+function initial(n) { return (n || '?').trim().charAt(0) || '?'; }
+function saveSession() { try { sessionStorage.setItem(SKEY, JSON.stringify({ role: S.role, room: S.room })); } catch (e) {} }
+function clearSession() { try { sessionStorage.removeItem(SKEY); } catch (e) {} }
+function loadSession() { try { return JSON.parse(sessionStorage.getItem(SKEY) || 'null'); } catch (e) { return null; } }
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove(); return ok;
+  }
+}
+function inviteUrl() { return location.origin + location.pathname + '?room=' + S.room; }
+
+/* ---------- 名前 ---------- */
+try { $('name').value = localStorage.getItem('oekaki2p-name') || ''; } catch (e) {}
+function readName() {
+  S.name = $('name').value.trim() || 'プレイヤー';
+  try { localStorage.setItem('oekaki2p-name', $('name').value.trim()); } catch (e) {}
+}
+
+/* ---------- マイク ---------- */
+async function prepareMic() {
+  if (!window.isSecureContext) throw { friendly: 'このページは https で ひらいてね。' };
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw { friendly: 'この ブラウザでは マイクが つかえないよ。Chrome か Safari で ひらいてね。' };
+  if (!S.audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) S.audioCtx = new AC();
+  }
+  if (S.audioCtx && S.audioCtx.state === 'suspended') { try { await S.audioCtx.resume(); } catch (e) {} }
+  if (S.localStream && S.localStream.getAudioTracks().some(t => t.readyState === 'live')) return;
+  try {
+    S.localStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false
+    });
+  } catch (e) {
+    if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError'))
+      throw { friendly: 'マイクが「ブロック」に なっているよ。<br>アドレスバーの 🔒 や ⓘ を おして、マイクを <b>「許可」</b> にしてから もういちど おしてね。' };
+    if (e && e.name === 'NotFoundError') throw { friendly: 'マイクが みつからないよ。' };
+    if (e && e.name === 'NotReadableError') throw { friendly: 'ほかの アプリが マイクを つかっているみたい。通話アプリなどを とじてね。' };
+    throw { friendly: 'マイクの じゅんびに しっぱいしたよ（' + (e && e.name || e) + '）' };
+  }
+  S.localStream.getAudioTracks().forEach(t => { t.enabled = S.micOn; t.onended = () => log('マイクが止まった'); });
+  if (S.audioCtx) {
+    try {
+      const src = S.audioCtx.createMediaStreamSource(S.localStream);
+      S.analyser = S.audioCtx.createAnalyser(); S.analyser.fftSize = 512;
+      src.connect(S.analyser);
+    } catch (e) { log('ローカルメーター不可: ' + e); }
+  }
+  // iPhoneのSafariは audio.volume が変えられないので、その場合はWeb Audioで音量を調整する
+  const a = document.createElement('audio'); a.volume = 0.5;
+  S.useGain = Math.abs(a.volume - 0.5) > 0.01 && !!S.audioCtx;
+  log('マイクOK / 音量方式: ' + (S.useGain ? 'WebAudio' : 'audio要素'));
+}
+
+/* ---------- Peer ---------- */
+function makePeer(id) {
+  return new Promise((resolve, reject) => {
+    const p = id ? new Peer(id, PEER_OPTS) : new Peer(PEER_OPTS);
+    let settled = false;
+    p.on('open', pid => { if (!settled) { settled = true; log('サーバー接続 ID=' + pid); resolve(p); } });
+    p.on('error', e => {
+      if (!settled) { settled = true; try { p.destroy(); } catch (x) {} reject(e); }
+      else onPeerError(e);
+    });
+    p.on('disconnected', () => log('サーバーから切れた（通話中なら影響なし）'));
+  });
+}
+function onPeerError(e) {
+  log('エラー: ' + (e.type || '') + ' ' + (e.message || e));
+  if (e.type === 'peer-unavailable') {
+    if (S.role === 'guest' && !S.everConnected && S.attempt >= 1 && S.phase === 'connecting') {
+      fail('へやが みつかりません', 'へやばんごう <b>' + S.room + '</b> の へやは いま ありません。<br>ばんごうを たしかめるか、あいてに「へやを つくる」を おしてもらってね。', true);
+    }
+  }
+}
+
+/* ---------- ホスト ---------- */
+async function createRoom(resumeCode) {
+  S.role = 'host';
+  show('scr-wait'); $('waitStatus').textContent = 'じゅんびちゅう…'; $('waitStatus').className = 'status st-warn';
+  let p = null;
+  if (resumeCode) {
+    S.room = resumeCode; $('waitCode').textContent = S.room;
+    p = await openHostIdWithRetry(resumeCode, 90000);
+  } else {
+    for (let i = 0; i < 5 && !p; i++) {
+      const code = randCode();
+      try { p = await makePeer(PREFIX + code); S.room = code; }
+      catch (e) { if (e.type !== 'unavailable-id') throw e; }
+    }
+  }
+  if (!p) throw { friendly: 'へやを つくれませんでした。すこし まってから もういちど ためしてね。' };
+  S.peer = p; S.peerReady = true; wireHost(p); saveSession();
+  $('waitCode').textContent = S.room;
+  S.phase = S.everConnected ? 'reconnecting' : 'waiting';
+  S.startAt = Date.now();
+  if (S.phase === 'reconnecting') show('scr-call');
+  requestWakeLock(); render();
+}
+async function openHostIdWithRetry(code, ms) {
+  const until = Date.now() + ms; let n = 0;
+  while (Date.now() < until) {
+    try { return await makePeer(PREFIX + code); }
+    catch (e) {
+      if (e.type !== 'unavailable-id') throw e;
+      n++; log('へや番号がまだ使用中… 再試行 ' + n);
+      $('waitStatus').textContent = 'へやを とりもどしています…（' + n + '）';
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+  return null;
+}
+function wireHost(p) {
+  p.on('connection', conn => {
+    const cur = S.conn;
+    const curAlive = cur && cur.open && Date.now() - S.lastSeen < DEAD_AFTER;
+    if (curAlive && cur.peer !== conn.peer) {
+      log('満員のため拒否: ' + conn.peer);
+      conn.on('open', () => { try { conn.send({ t: 'full' }); } catch (e) {} setTimeout(() => conn.close(), 600); });
+      return;
+    }
+    log('相手が来た: ' + conn.peer);
+    if (cur && cur !== conn) { dropConn(cur); }
+    setConn(conn);
+  });
+  p.on('call', call => {
+    if (!S.conn || call.peer !== S.conn.peer) { log('知らない相手の通話を拒否'); call.close(); return; }
+    log('音声の着信 → 応答');
+    call.answer(S.localStream);
+    attachCall(call);
+  });
+}
+
+/* ---------- ゲスト ---------- */
+async function joinRoom(code) {
+  S.role = 'guest'; S.room = code; S.attempt = 0;
+  show('scr-call'); S.phase = 'connecting'; S.startAt = Date.now(); render();
+  S.peer = await makePeer(); S.peerReady = true; S.fullCount = 0; saveSession();
+  requestWakeLock();
+  connectToHost();
+}
+function connectToHost() {
+  if (!S.peer || S.peer.destroyed || S.peer.disconnected) return;
+  S.attempt++; S.lastAttempt = Date.now();
+  log('接続をこころみる #' + S.attempt);
+  if (S.conn) dropConn(S.conn);
+  if (S.call) dropCall(S.call);
+  const conn = S.peer.connect(PREFIX + S.room, { reliable: true, serialization: 'json', metadata: { name: S.name } });
+  setConn(conn);
+  conn.on('open', () => {
+    if (S.conn !== conn) return;
+    const call = S.peer.call(PREFIX + S.room, S.localStream, { metadata: { name: S.name } });
+    attachCall(call);
+  });
+}
+
+/* ---------- 接続オブジェクト ---------- */
+function setConn(conn) {
+  S.conn = conn;
+  conn.on('open', () => {
+    if (S.conn !== conn) return;
+    S.lastSeen = Date.now(); log('データ接続OK');
+    send({ t: 'hello', name: S.name, mic: S.micOn, v: VERSION });
+    render();
+  });
+  conn.on('data', d => { if (S.conn === conn) onData(d); });
+  conn.on('close', () => { if (S.conn === conn) { log('データ接続が閉じた'); lost(); } });
+  conn.on('error', e => log('データ接続エラー: ' + e));
+}
+function dropConn(c) { try { c.close(); } catch (e) {} if (S.conn === c) S.conn = null; }
+function dropCall(c) { try { c.close(); } catch (e) {} if (S.call === c) S.call = null; }
+function send(o) { try { if (S.conn && S.conn.open) S.conn.send(o); } catch (e) {} }
+function onData(d) {
+  S.lastSeen = Date.now();
+  if (!d || typeof d !== 'object') return;
+  switch (d.t) {
+    case 'hello': S.remoteName = String(d.name || 'あいて').slice(0, 10); S.remoteMicOn = d.mic !== false; render(); break;
+    case 'mic': S.remoteMicOn = !!d.on; render(); break;
+    case 'bye': log('相手が通話を切った'); endByRemote(); break;
+    case 'leaving': log('相手がページを閉じた/再読み込み'); S.lastSeen = 0; lost(); break;
+    case 'full':
+      // 再読み込み直後は、ホスト側に古い接続が数秒残っていることがあるので、何回かは待ってやりなおす
+      S.fullCount = (S.fullCount || 0) + 1;
+      if (S.fullCount <= 4) { log('満員と言われた → 少し待って再試行 ' + S.fullCount); dropConn(S.conn); S.lastAttempt = Date.now() - 1000; }
+      else fail('へやが いっぱいです', 'この へやには もう 2人 いるよ。', false);
+      break;
+  }
+}
+function attachCall(call) {
+  if (S.call && S.call !== call) dropCall(S.call);
+  S.call = call;
+  call.on('stream', st => {
+    if (S.call !== call) return;
+    log('相手の声を受信');
+    playRemote(st); markConnected();
+  });
+  call.on('close', () => { if (S.call === call) { log('音声接続が閉じた'); lost(); } });
+  call.on('error', e => log('音声エラー: ' + e));
+  setTimeout(() => hookPc(call), 0);
+}
+function hookPc(call) {
+  const pc = call.peerConnection;
+  if (!pc || S.hookedPcs.has(pc)) return;
+  S.hookedPcs.add(pc);
+  pc.addEventListener('iceconnectionstatechange', () => {
+    log('ICE: ' + pc.iceConnectionState);
+    if (S.call === call && pc.iceConnectionState === 'failed') lost();
+    render();
+  });
+}
+function markConnected() {
+  const was = S.phase;
+  S.phase = 'connected'; S.lastSeen = Date.now(); S.fullCount = 0;
+  if (!S.everConnected) { S.everConnected = true; S.ttc = (Date.now() - S.startAt) / 1000; }
+  if (was === 'reconnecting') { toast('また つながったよ！'); log('再接続 成功（' + ((Date.now() - S.lostAt) / 1000).toFixed(1) + '秒）'); }
+  show('scr-call'); render();
+}
+function lost() {
+  if (S.phase === 'connected') {
+    S.phase = 'reconnecting'; S.reconnects++; S.lostAt = Date.now();
+    log('切断を検知 → 再接続へ');
+    S.route = null; S.remoteLevel = 0;
+    if (S.role === 'guest') S.lastAttempt = 0; // すぐ試す
+  }
+  render();
+}
+
+/* ---------- 音声再生 ---------- */
+function playRemote(st) {
+  S.remoteStream = st;
+  const el = $('remoteAudio');
+  el.srcObject = st;
+  if (S.useGain) {
+    el.muted = true; // 音は Web Audio 側から出す
+    try {
+      if (S.gainSrc) try { S.gainSrc.disconnect(); } catch (e) {}
+      S.gainSrc = S.audioCtx.createMediaStreamSource(st);
+      if (!S.gain) { S.gain = S.audioCtx.createGain(); S.gain.connect(S.audioCtx.destination); }
+      S.gainSrc.connect(S.gain); applyVolume();
+    } catch (e) { log('WebAudio不可 → audio要素で再生: ' + e); S.useGain = false; el.muted = false; }
+  } else { el.muted = false; applyVolume(); }
+  const p = el.play();
+  if (p && p.catch) p.catch(e => { log('自動再生ブロック: ' + e.name); $('btnTapAudio').style.display = 'flex'; });
+  if (S.audioCtx && S.audioCtx.state === 'suspended') S.audioCtx.resume().catch(() => { $('btnTapAudio').style.display = 'flex'; });
+}
+function applyVolume() {
+  const v = $('vol').value / 100;
+  if (S.useGain && S.gain) S.gain.gain.value = v;
+  else $('remoteAudio').volume = v;
+}
+$('vol').addEventListener('input', applyVolume);
+$('btnTapAudio').addEventListener('click', async () => {
+  try { if (S.audioCtx) await S.audioCtx.resume(); await $('remoteAudio').play(); $('btnTapAudio').style.display = 'none'; } catch (e) { log('再生失敗: ' + e); }
+});
+
+/* ---------- マイクON/OFF ---------- */
+$('btnMic').addEventListener('click', () => {
+  S.micOn = !S.micOn;
+  if (S.localStream) S.localStream.getAudioTracks().forEach(t => t.enabled = S.micOn);
+  send({ t: 'mic', on: S.micOn });
+  toast(S.micOn ? 'マイク オン' : 'マイク オフ（あいてに こえが とどかないよ）');
+  render();
+});
+
+/* ---------- きる ---------- */
+let hangArmed = 0;
+$('btnHang').addEventListener('click', () => {
+  if (Date.now() - hangArmed > 3000) {
+    hangArmed = Date.now(); $('btnHang').classList.add('armed'); $('hangHint').textContent = 'もういちど おすと 通話を きるよ';
+    setTimeout(() => { if (Date.now() - hangArmed >= 3000) { $('btnHang').classList.remove('armed'); $('hangHint').textContent = ''; } }, 3100);
+    return;
+  }
+  send({ t: 'bye' });
+  setTimeout(() => { teardown(); show('scr-start'); refreshResume(); }, 200);
+});
+function teardown(keepMic) {
+  S.phase = 'ended'; S.peerReady = false;
+  if (S.conn) dropConn(S.conn);
+  if (S.call) dropCall(S.call);
+  if (S.peer) { try { S.peer.destroy(); } catch (e) {} S.peer = null; }
+  $('remoteAudio').srcObject = null;
+  if (!keepMic && S.localStream) { S.localStream.getTracks().forEach(t => t.stop()); S.localStream = null; S.analyser = null; }
+  clearSession(); releaseWakeLock();
+  S.everConnected = false; S.route = null; S.reconnects = 0; S.ttc = null; S.remoteName = '';
+  $('btnHang').classList.remove('armed'); $('hangHint').textContent = '';
+}
+function endByRemote() {
+  const report = buildReport();
+  teardown();
+  S.lastReport = report;
+  $('endTitle').textContent = '通話が おわりました';
+  $('endMsg').innerHTML = 'あいてが 通話を きりました。';
+  $('btnEndRetry').style.display = 'none';
+  show('scr-end');
+}
+function fail(title, msg, canRetry) {
+  S.lastReport = buildReport();
+  const role = S.role, room = S.room;
+  teardown(true);
+  S.retryRole = role; S.retryRoom = room;
+  $('endTitle').textContent = title;
+  $('endMsg').innerHTML = msg;
+  $('btnEndRetry').style.display = canRetry ? 'flex' : 'none';
+  show('scr-end');
+}
+
+/* ---------- 見はり（再接続・タイムアウト） ---------- */
+setInterval(watchdog, 1500);
+function watchdog() {
+  if (S.phase === 'ended' || S.phase === 'idle' || S.phase === 'failed') return;
+  if (!S.peer) { if (S.peerReady && !S.rebuilding) rebuildPeer(); return; }
+  // シグナリングサーバーとの接続（通話そのものには不要だが、再接続には必要）
+  if (S.peer.destroyed) { log('Peerが破棄された → 作りなおし'); rebuildPeer(); return; }
+  if (S.peer.disconnected) { try { S.peer.reconnect(); } catch (e) {} }
+
+  // 生存確認
+  if (S.conn && S.conn.open) send({ t: 'hb' });
+  if (S.phase === 'connected') {
+    const ice = S.call && S.call.peerConnection ? S.call.peerConnection.iceConnectionState : '';
+    if (Date.now() - S.lastSeen > DEAD_AFTER || ice === 'failed' || ice === 'closed') lost();
+  }
+  // ゲストは自分から つなぎなおす
+  if (S.role === 'guest' && (S.phase === 'reconnecting' || S.phase === 'connecting') && !S.peer.disconnected) {
+    const wait = S.phase === 'connecting' ? FIRST_TRY_TIMEOUT : Math.min(4000 + S.attempt * 500, 8000);
+    if (S.phase === 'connecting' && S.attempt >= MAX_FIRST_TRIES && Date.now() - S.lastAttempt > FIRST_TRY_TIMEOUT) {
+      const ice = S.call && S.call.peerConnection ? S.call.peerConnection.iceConnectionState : '';
+      const reached = S.conn && S.conn.open;
+      fail('つながりませんでした',
+        (reached ? 'へやは みつかったけど、こえの みちが つくれませんでした。' : 'あいての スマホまで みちが つくれませんでした。') +
+        '<br><br>ネットワークの くみあわせ（とくに <b>携帯回線どうし</b>）によっては、ちょくせつ つながれない ことが あります。<br>どちらかが <b>Wi-Fi</b> に きりかえて、もういちど ためしてね。' +
+        '<br><span class="small">（ICEの状態: ' + (ice || 'なし') + '）</span>', true);
+      return;
+    }
+    if (Date.now() - S.lastAttempt > wait) connectToHost();
+  }
+  render();
+}
+async function rebuildPeer() {
+  S.rebuilding = true; S.peer = null;
+  try {
+    if (S.role === 'host') { const p = await openHostIdWithRetry(S.room, 90000); if (p && S.phase !== 'ended') { S.peer = p; wireHost(p); } }
+    else { const p = await makePeer(); if (S.phase !== 'ended') { S.peer = p; S.lastAttempt = 0; } else p.destroy(); }
+  } catch (e) { log('作りなおし失敗: ' + (e.type || e) + ' → また試す'); }
+  S.rebuilding = false;
+}
+
+/* ---------- 統計（経路・音量） ---------- */
+setInterval(pollStats, 400);
+let statTick = 0;
+async function pollStats() {
+  const pc = S.call && S.call.peerConnection;
+  if (!pc) { S.remoteLevel = 0; return; }
+  hookPc(S.call);
+  let st; try { st = await pc.getStats(); } catch (e) { return; }
+  let transport = null, pairs = [], inbound = null; const localTypes = {}, remoteTypes = {};
+  st.forEach(r => {
+    if (r.type === 'transport') transport = r;
+    else if (r.type === 'candidate-pair') pairs.push(r);
+    else if (r.type === 'local-candidate') localTypes[r.candidateType] = (localTypes[r.candidateType] || 0) + 1;
+    else if (r.type === 'remote-candidate') remoteTypes[r.candidateType] = (remoteTypes[r.candidateType] || 0) + 1;
+    else if (r.type === 'inbound-rtp' && (r.kind === 'audio' || r.mediaType === 'audio')) inbound = r;
+  });
+  let pair = null;
+  if (transport && transport.selectedCandidatePairId) pair = st.get(transport.selectedCandidatePairId);
+  if (!pair) pair = pairs.find(p => p.nominated && p.state === 'succeeded') || pairs.find(p => p.selected);
+  if (pair) {
+    const l = st.get(pair.localCandidateId) || {}, r = st.get(pair.remoteCandidateId) || {};
+    S.route = { local: l.candidateType, remote: r.candidateType, proto: l.protocol, net: l.networkType };
+    if (typeof pair.currentRoundTripTime === 'number') S.rtt = Math.round(pair.currentRoundTripTime * 1000);
+  }
+  const fmt = o => Object.keys(o).map(k => k + '×' + o[k]).join(' ') || 'なし';
+  S.cands = 'じぶん: ' + fmt(localTypes) + ' ／ あいて: ' + fmt(remoteTypes);
+  if (inbound) {
+    if (typeof inbound.audioLevel === 'number') S.remoteLevel = inbound.audioLevel;
+    else if (typeof inbound.totalAudioEnergy === 'number') {
+      const now = { e: inbound.totalAudioEnergy, d: inbound.totalSamplesDuration };
+      if (S.lastEnergy && now.d > S.lastEnergy.d) S.remoteLevel = Math.sqrt((now.e - S.lastEnergy.e) / (now.d - S.lastEnergy.d));
+      S.lastEnergy = now;
+    }
+    const lostP = inbound.packetsLost || 0, recv = inbound.packetsReceived || 0;
+    if (recv + lostP > 0) S.loss = (lostP / (recv + lostP) * 100);
+  }
+  if (++statTick % 3 === 0) render();
+}
+function routeText() {
+  const r = S.route; if (!r || !r.local) return '-';
+  const types = r.local + ' ⇄ ' + r.remote + ' / ' + (r.proto || '?');
+  if (r.local === 'relay' || r.remote === 'relay') return '⚠️ 中継（TURN）' + ' … ' + types;
+  if (r.local === 'host' && r.remote === 'host') return '✅ 直接（同じネットワーク）… ' + types;
+  return '✅ 直接（インターネットごし）… ' + types;
+}
+
+/* ---------- 声のメーター ---------- */
+function meterLoop() {
+  if (S.analyser) {
+    const buf = new Uint8Array(S.analyser.fftSize); S.analyser.getByteTimeDomainData(buf);
+    let sum = 0; for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+    S.localLevel = S.localLevel * 0.6 + Math.sqrt(sum / buf.length) * 0.4;
+  }
+  const lv = S.micOn ? Math.min(1, S.localLevel * 4) : 0;
+  $('avMe').style.boxShadow = `0 0 0 ${Math.round(lv * 16)}px rgba(59,165,92,.55)`;
+  const rv = S.phase === 'connected' ? Math.min(1, S.remoteLevel * 4) : 0;
+  $('avYou').style.boxShadow = `0 0 0 ${Math.round(rv * 16)}px rgba(58,134,216,.55)`;
+  requestAnimationFrame(meterLoop);
+}
+requestAnimationFrame(meterLoop);
+
+/* ---------- 画面の更新 ---------- */
+function render() {
+  $('avMeTxt').textContent = initial(S.name); $('nmMe').textContent = S.name || 'じぶん';
+  $('avYouTxt').textContent = S.remoteName ? initial(S.remoteName) : '?'; $('nmYou').textContent = S.remoteName || 'あいて';
+  $('avMe').classList.toggle('muted', !S.micOn);
+  $('avYou').classList.toggle('muted', S.phase === 'connected' && !S.remoteMicOn);
+  $('btnMic').classList.toggle('off', !S.micOn);
+  $('icMicOn').style.display = S.micOn ? '' : 'none'; $('icMicOff').style.display = S.micOn ? 'none' : '';
+
+  const cs = $('callStatus'); let info = '';
+  if (S.phase === 'connected') { cs.textContent = '🟢 つながっています'; cs.className = 'status st-ok';
+    if (!S.remoteMicOn) info = 'あいての マイクは オフに なっています'; }
+  else if (S.phase === 'reconnecting') { cs.textContent = '🟡 つなぎなおしています…'; cs.className = 'status st-warn';
+    info = S.role === 'host' ? 'あいてが もどってくるのを まっています。この がめんの まま まってね。' : 'すこし まってね。じどうで つなぎなおします。'; }
+  else if (S.phase === 'connecting') { cs.textContent = '🟡 つないでいます…（' + S.attempt + '回め）'; cs.className = 'status st-warn'; }
+  else if (S.phase === 'waiting') { cs.textContent = 'あいてを まっています'; cs.className = 'status st-warn'; }
+  err('callInfo', info);
+
+  if (S.phase === 'waiting') {
+    const w = $('waitStatus');
+    if (S.peer && !S.peer.disconnected) { w.textContent = '🟢 じゅんびOK！ あいてを まっています'; w.className = 'status st-ok'; }
+    else { w.textContent = '🟡 サーバーに つないでいます…'; w.className = 'status st-warn'; }
+  }
+
+  $('dRole').textContent = S.role === 'host' ? 'ホスト（へやを つくった）' : S.role === 'guest' ? 'ゲスト（はいった）' : '-';
+  $('dRoom').textContent = S.room || '-';
+  $('dSig').textContent = !S.peer ? '-' : S.peer.destroyed ? '破棄' : S.peer.disconnected ? '切断中（通話は続く）' : '接続中';
+  const pc = S.call && S.call.peerConnection;
+  $('dIce').textContent = pc ? pc.iceConnectionState + ' / ' + pc.connectionState : '-';
+  $('dData').textContent = S.conn ? (S.conn.open ? 'open（最終受信 ' + ((Date.now() - S.lastSeen) / 1000).toFixed(1) + '秒前）' : 'まだ') : '-';
+  $('dRoute').textContent = routeText();
+  $('dCands').textContent = S.cands || '-';
+  $('dRtt').textContent = S.rtt != null ? S.rtt + ' ms' : '-';
+  $('dLoss').textContent = S.loss != null ? S.loss.toFixed(1) + ' %' : '-';
+  $('dTtc').textContent = S.ttc != null ? S.ttc.toFixed(1) + ' 秒' : '-';
+  $('dRec').textContent = S.reconnects;
+  $('dNet').textContent = netText();
+}
+function netText() {
+  const c = navigator.connection; if (!c) return '不明（このブラウザでは取れない）';
+  return [c.type, c.effectiveType].filter(Boolean).join(' / ') || '不明';
+}
+
+/* ---------- テスト結果 ---------- */
+function buildReport() {
+  const r = S.route || {};
+  const ua = navigator.userAgent;
+  const br = /CriOS|Chrome\/[\d.]+/.exec(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : 'その他';
+  const os = /Android [\d.]+/.exec(ua)?.[0] || /iPhone OS [\d_]+/.exec(ua)?.[0]?.replace(/_/g, '.') || /iPad|Macintosh|Windows NT [\d.]+/.exec(ua)?.[0] || '';
+  const pc = S.call && S.call.peerConnection;
+  return [
+    '【おえかきトーク 通話テスト結果】v' + VERSION,
+    '日時: ' + new Date().toLocaleString('ja-JP'),
+    'テスト環境: ' + ($('env').value || '（未選択）'),
+    '役割: ' + (S.role === 'host' ? 'ホスト' : S.role === 'guest' ? 'ゲスト' : '-'),
+    '端末: ' + os + ' / ' + br,
+    '自分の回線: ' + netText(),
+    '結果: ' + (S.everConnected ? '通話できた' : 'つながらなかった'),
+    '経路: ' + (r.local ? r.local + ' ⇄ ' + r.remote + ' / ' + r.proto : '-') + (r.local === 'relay' || r.remote === 'relay' ? '（TURN経由）' : r.local ? '（直接）' : ''),
+    '候補: ' + (S.cands || '-'),
+    'ICE: ' + (pc ? pc.iceConnectionState : '-'),
+    '往復時間: ' + (S.rtt != null ? S.rtt + 'ms' : '-'),
+    'パケットロス: ' + (S.loss != null ? S.loss.toFixed(1) + '%' : '-'),
+    'つながるまで: ' + (S.ttc != null ? S.ttc.toFixed(1) + '秒' : '-'),
+    '再接続回数: ' + S.reconnects,
+    '--- ログ（最新20行） ---',
+    ...S.logs.slice(-20)
+  ].join('\n');
+}
+$('btnReport').addEventListener('click', async () => { toast(await copyText(buildReport()) ? 'コピーしたよ' : 'コピーできなかったよ'); });
+$('btnEndReport').addEventListener('click', async () => { toast(await copyText(S.lastReport || buildReport()) ? 'コピーしたよ' : 'コピーできなかったよ'); });
+
+/* ---------- 画面が消えないように ---------- */
+async function requestWakeLock() {
+  try { if ('wakeLock' in navigator && document.visibilityState === 'visible') { S.wakeLock = await navigator.wakeLock.request('screen'); } } catch (e) { log('画面ロック防止できず: ' + e.name); }
+}
+function releaseWakeLock() { try { S.wakeLock && S.wakeLock.release(); } catch (e) {} S.wakeLock = null; }
+document.addEventListener('visibilitychange', () => {
+  log(document.visibilityState === 'visible' ? 'がめんに もどった' : 'バックグラウンドへ');
+  if (document.visibilityState === 'visible' && S.phase !== 'ended' && S.phase !== 'idle') {
+    requestWakeLock();
+    if (S.audioCtx && S.audioCtx.state !== 'running') S.audioCtx.resume().catch(() => {});
+    const el = $('remoteAudio'); if (el.srcObject && el.paused) el.play().catch(() => { $('btnTapAudio').style.display = 'flex'; });
+    if (S.role === 'guest' && S.phase === 'reconnecting') S.lastAttempt = 0;
+    watchdog();
+  }
+});
+window.addEventListener('pagehide', () => { send({ t: 'leaving' }); });
+
+/* ---------- ボタン ---------- */
+async function start(fn) {
+  err('startErr', '');
+  readName();
+  try { await prepareMic(); }
+  catch (e) { err('startErr', e.friendly || String(e)); return; }
+  S.micOn = true; S.localStream.getAudioTracks().forEach(t => t.enabled = true);
+  try { await fn(); }
+  catch (e) {
+    log('開始失敗: ' + (e.type || '') + ' ' + (e.message || e.friendly || e));
+    teardown(true); show('scr-start');
+    let m = e.friendly;
+    if (!m && (e.type === 'network' || e.type === 'server-error' || e.type === 'socket-error'))
+      m = 'つなぐための サーバーに つながりませんでした。インターネットに つながっているか たしかめて、すこし まってから もういちど ためしてね。';
+    if (!m && e.type === 'browser-incompatible') m = 'この ブラウザは たいおう していません。Chrome か Safari で ひらいてね。';
+    err('startErr', m || 'うまく いきませんでした（' + (e.type || e) + '）');
+    refreshResume();
+  }
+}
+$('btnCreate').addEventListener('click', () => start(() => createRoom()));
+$('btnJoin').addEventListener('click', () => {
+  const code = $('code').value.replace(/\D/g, '');
+  if (code.length !== 6) { err('startErr', 'へやばんごうは 6けたの すうじ だよ。'); return; }
+  start(() => joinRoom(code));
+});
+$('code').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
+$('btnResume').addEventListener('click', () => {
+  const s = loadSession(); if (!s) return;
+  if (s.role === 'host') start(() => createRoom(s.room)); else start(() => joinRoom(s.room));
+});
+$('btnShare').addEventListener('click', async () => {
+  const url = inviteUrl(), text = 'おえかきトークで あそぼう！ へやばんごう ' + S.room;
+  if (navigator.share) { try { await navigator.share({ title: 'おえかきトーク', text, url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  toast(await copyText(text + '\n' + url) ? 'しょうたいを コピーしたよ' : 'コピーできなかったよ');
+});
+$('btnCopyUrl').addEventListener('click', async () => { toast(await copyText(inviteUrl()) ? 'URLを コピーしたよ' : 'コピーできなかったよ'); });
+$('btnCancelWait').addEventListener('click', () => { teardown(); show('scr-start'); refreshResume(); });
+$('btnEndHome').addEventListener('click', () => { teardown(); show('scr-start'); refreshResume(); });
+$('btnEndRetry').addEventListener('click', () => {
+  const role = S.retryRole, room = S.retryRoom; show('scr-start');
+  if (role === 'guest' && room) start(() => joinRoom(room)); else if (role === 'host') start(() => createRoom(room));
+});
+
+/* ---------- 起動時 ---------- */
+function refreshResume() {
+  const s = loadSession();
+  $('resumeCard').style.display = s && s.room ? 'block' : 'none';
+  if (s && s.room) $('resumeCode').textContent = s.room;
+}
+(function init() {
+  const q = new URLSearchParams(location.search).get('room');
+  if (q && /^\d{6}$/.test(q)) {
+    $('code').value = q;
+    $('joinCard').style.outline = '4px solid var(--blue)';
+    $('joinCard').parentNode.insertBefore($('joinCard'), $('btnCreate').closest('.card'));
+  }
+  refreshResume();
+  if (typeof Peer === 'undefined') err('startErr', 'つうしんの じゅんびが よみこめませんでした。インターネットに つながっているか たしかめて、ページを ひらきなおしてね。');
+  log('起動 v' + VERSION + ' / ' + navigator.userAgent);
+  render();
+})();
+</script>
+</body>
+</html>
