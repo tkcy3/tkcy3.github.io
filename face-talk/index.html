@@ -161,6 +161,8 @@ ol.steps li{margin:6px 0}
 .adjBox img{width:100%;height:100%;display:block;border-radius:20px}
 .mk{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid #E0703A;
   display:flex;align-items:center;justify-content:center;font-size:22px;touch-action:none;user-select:none}
+.camBtn{font-size:22px}
+.camBtn.on{background:#3BA55C;box-shadow:0 3px 0 #2A7B44}
 .testBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;max-width:640px;background:#E9E2FF;border-radius:14px;padding:6px 10px;font-weight:bold;font-size:14px}
 .testBar button{border:0;border-radius:999px;background:#fff;font:inherit;font-size:14px;padding:6px 12px;box-shadow:0 2px 0 #C9BDF0}
 .testBar button.on{background:#8F7BEA;color:#fff}
@@ -284,6 +286,8 @@ ol.steps li{margin:6px 0}
   <div class="testBar" id="testBar" style="display:none">🧪 テスト
     <button type="button" id="tbTalk">🗣 あいてを しゃべらせる</button>
     <button type="button" id="tbFace">🔁 あいての かお</button>
+    <button type="button" id="tbMimic">🪞 あいて役も まねする</button>
+    <span id="tbFps" style="font-weight:normal;font-size:12px"></span>
   </div>
   <div class="topRow"><div class="status" id="callStatus">つないでいます…</div>
     <div class="ctl">
@@ -291,6 +295,7 @@ ol.steps li{margin:6px 0}
       <svg id="icMicOn" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg>
       <svg id="icMicOff" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M3 3l18 18"/><path d="M9 9v2a3 3 0 0 0 5 2.2"/><path d="M15 9.4V5a3 3 0 0 0-5.9-.7"/><path d="M5 11a7 7 0 0 0 11.5 5.3"/><path d="M19 11a7 7 0 0 1-.6 2.8"/><path d="M12 18v4"/></svg>
     </button>
+      <button class="volBtn camBtn" id="btnCam" type="button" aria-label="かおで うごかす">📸</button>
       <button class="volBtn" id="btnVol" type="button" aria-label="おとの おおきさ"><svg viewBox="0 0 24 24" fill="none" stroke="#4A3826" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
     <button class="hang" id="btnHang" aria-label="きる">
       <svg viewBox="0 0 24 24" fill="#fff"><path d="M12 9c-3.2 0-6.2.8-8.6 2.3-.6.4-.9 1.1-.8 1.8l.4 2.2c.1.7.8 1.2 1.5 1.1l3-.5c.6-.1 1.1-.6 1.2-1.2l.2-1.6c1.9-.5 4.3-.5 6.2 0l.2 1.6c.1.6.6 1.1 1.2 1.2l3 .5c.7.1 1.4-.4 1.5-1.1l.4-2.2c.1-.7-.2-1.4-.8-1.8C18.2 9.8 15.2 9 12 9z"/></svg>
@@ -309,7 +314,7 @@ ol.steps li{margin:6px 0}
   <div class="faceArea">
     <div class="stageFaces" id="stageFaces">
       <div class="fbox big" id="fbYou"><canvas id="cvYou"></canvas><div class="fname"><span class="mutei">🔇</span><span id="nmYou">あいて</span></div></div>
-      <div class="fbox small" id="fbMe"><canvas id="cvMe"></canvas><div class="fname"><span class="mutei">🔇</span><span id="nmMe">じぶん</span></div></div>
+      <div class="fbox small" id="fbMe"><canvas id="cvMe"></canvas><div class="fname"><span class="mutei">🔇</span><span id="nmMe">じぶん</span> <span id="camState"></span></div></div>
     </div>
     <div class="toolCol">
       <div class="tools" id="tools">
@@ -413,7 +418,7 @@ ol.steps li{margin:6px 0}
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script>
 'use strict';
-const VERSION = '0.1.1';
+const VERSION = '0.2.0';
 const PREFIX = 'facetalk-v1-';
 // TURNは使わない。PeerJSの初期設定にはPeerJS提供のTURNが含まれるため、STUNだけに上書きする。
 const ICE_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
@@ -652,6 +657,7 @@ function onData(d) {
     case 'face': onFacePart(d); break;
     case 'fx': if ((d.f === 'h' || d.f === 'g') && validOp(d.o)) applyOp(d.f, d.o, true); break;
     case 'fxs': onShapes(d.s); break;
+    case 'ex': onExpr(d); break;
     case 'chat': onChat(d); break;
     case 'ack': onAck(d.id); break;
     case 'mic': S.remoteMicOn = !!d.on; render(); break;
@@ -733,6 +739,7 @@ function applyVolume() {
   else $('remoteAudio').volume = v;
 }
 $('vol').addEventListener('input', applyVolume);
+$('btnCam').addEventListener('click', () => { if (CAM.on) { camStop(); toast('📸 オフ'); } else camStart(); });
 $('btnVol').addEventListener('click', () => { const r = $('volRow'); r.style.display = r.style.display === 'none' ? 'block' : 'none'; });
 $('btnTapAudio').addEventListener('click', async () => {
   try { if (S.audioCtx) await S.audioCtx.resume(); await $('remoteAudio').play(); $('btnTapAudio').style.display = 'none'; } catch (e) { log('再生失敗: ' + e); }
@@ -769,6 +776,7 @@ function teardown(keepMic) {
   S.everConnected = false; S.route = null; S.reconnects = 0; S.ttc = null; S.remoteName = '';
   clearChat();
   resetShapes(); FACES.h = null; FACES.g = null; S.remoteAnalyser = null;
+  if (CAM.on) camStop(); delete EX.h; delete EX.g;
   $('btnHang').classList.remove('armed'); $('hangHint').textContent = '';
 }
 function endByRemote() {
@@ -1523,7 +1531,8 @@ function composeTex(v, key, now, level) {
   g.save(); g.beginPath(); g.arc(T / 2, T / 2, T * 0.485, 0, Math.PI * 2); g.clip();
   g.drawImage(face.el, 0, 0, T, T);
   // くち：しゃべると あごが下がって 口が ひらく
-  const target = Math.max(0, Math.min(1, (level - 0.06) * 2.4));
+  const ex = exOf(key, now);   // カメラで よみとった ひょうじょう（なければ null）
+  const target = ex ? Math.max(0, Math.min(1, (ex.jaw - 0.04) * 2.2)) : Math.max(0, Math.min(1, (level - 0.06) * 2.4));
   v.mouth += (target - v.mouth) * (target > v.mouth ? 0.55 : 0.25);
   if (v.mouth > 0.03) {
     const mx = L.m.x * T, my = L.m.y * T, mw = Math.max(0.12, L.m.w) * T, chin = Math.max(L.chin * T, my + mw * 0.6), dy = v.mouth * mw * 0.42;
@@ -1538,9 +1547,16 @@ function composeTex(v, key, now, level) {
     }
   }
   // まばたき
-  if (now > v.blinkAt) { v.blinkStart = now; v.blinkAt = now + 2200 + Math.random() * 3800; if (Math.random() < 0.2) v.blinkAt = now + 320; }
-  const bt = now - v.blinkStart, close = bt >= 0 && bt < 170 ? Math.sin(Math.PI * bt / 170) : 0;
-  if (close > 0.02) [[L.le, face.skinL], [L.re, face.skinR]].forEach(([e, skin]) => {
+  let closeL, closeR;
+  if (ex) {   // 本人の まばたき・ウインクを そのまま
+    const c = b => Math.max(0, Math.min(1, (b - 0.32) / 0.4));
+    closeL = c(ex.bl); closeR = c(ex.br);
+  } else {
+    if (now > v.blinkAt) { v.blinkStart = now; v.blinkAt = now + 2200 + Math.random() * 3800; if (Math.random() < 0.2) v.blinkAt = now + 320; }
+    const bt = now - v.blinkStart; closeL = closeR = bt >= 0 && bt < 170 ? Math.sin(Math.PI * bt / 170) : 0;
+  }
+  [[L.le, face.skinL, closeL], [L.re, face.skinR, closeR]].forEach(([e, skin, close]) => {
+    if (close <= 0.02) return;
     const ex = e.x * T, ey = e.y * T, rx = Math.max(e.w * T * 0.56, 5), ry = Math.max(e.h * T * 0.8 + 1.5, rx * 0.3);
     const edge = ey - ry + ry * 2 * close;   // まぶたの ふち
     g.save(); g.beginPath(); g.ellipse(ex, ey, rx, ry, 0, 0, Math.PI * 2); g.clip();
@@ -1554,12 +1570,104 @@ function composeTex(v, key, now, level) {
   g.drawImage(gcOf(key), 0, 0);
 }
 function meshPositions(key) {
-  const f = FS[key], P = f.pos, d = f.d;
+  const f = FS[key], P = f.pos, d = f.d, ex = exOf(key, performance.now()), L = lmOf(key);
+  // ひょうじょう：えがお（口の はしを 上げる）・まゆを 上げる・顔の かたむき／よこむき
+  let sm = 0, bw = 0, cs = 1, sn = 0, ox = 0, kx = 1, oy = 0;
+  if (ex) {
+    sm = Math.max(0, ex.smile - 0.15) * 0.05; bw = Math.max(0, ex.brow - 0.15) * 0.05;
+    const r = Math.max(-0.6, Math.min(0.6, ex.roll)); cs = Math.cos(r); sn = Math.sin(r);
+    const y = Math.max(-0.8, Math.min(0.8, ex.yaw)); ox = y * 0.12; kx = 1 - Math.abs(y) * 0.2;
+    oy = Math.max(-0.5, Math.min(0.5, ex.pitch)) * 0.12;
+  }
+  const mcL = L.m.x - L.m.w / 2, mcR = L.m.x + L.m.w / 2, my = L.m.y, by = Math.min(L.le.y, L.re.y) - 0.07;
   for (let n = 0; n < NV * NV; n++) {
-    P[n * 2] = (REST[n * 2] + d[n * 2] - 0.5) * 2 * FIT * f.sx;
-    P[n * 2 + 1] = -(REST[n * 2 + 1] + d[n * 2 + 1] - 0.5) * 2 * FIT * f.sy;
+    const ru = REST[n * 2], rv = REST[n * 2 + 1];
+    let u = ru + d[n * 2], v = rv + d[n * 2 + 1];
+    if (sm) { const g1 = Math.exp(-((ru - mcL) ** 2 + (rv - my) ** 2) / 0.0035), g2 = Math.exp(-((ru - mcR) ** 2 + (rv - my) ** 2) / 0.0035); v -= sm * (g1 + g2); u -= sm * 0.4 * g1; u += sm * 0.4 * g2; }
+    if (bw) { const g = Math.exp(-((ru - L.le.x) ** 2 + (rv - by) ** 2) / 0.006) + Math.exp(-((ru - L.re.x) ** 2 + (rv - by) ** 2) / 0.006); v -= bw * g; }
+    let x = (u - 0.5) * 2 * FIT * f.sx * kx, y = -(v - 0.5) * 2 * FIT * f.sy;
+    if (ex) { const X = x * cs + y * sn, Y = -x * sn + y * cs; x = X + ox; y = Y - oy; }
+    P[n * 2] = x; P[n * 2 + 1] = y;
   }
   return P;
+}
+
+/* ================= カメラで 顔を うごかす（Vチューバーと同じ しくみ） =================
+   自分のカメラで 自分の顔を よみとり、「まばたき・口のひらき・えがお・まゆ・かたむき」の 数字だけを 相手に送る。
+   映像は スマホの外に 出ない。顔が 見えないときは、いつもの 自動まばたき＋声で口パク に もどる。 */
+const EX = {};   // key → { bl, br, jaw, smile, brow, roll, yaw, pitch, t }
+function exOf(key, now) { const e = EX[key]; return e && now - e.t < 700 ? e : null; }
+const CAM = { on: false, stream: null, video: null, vlm: null, last: 0, sent: 0, ms: 0, fps: 0, frames: 0, fpsT: 0, found: false, base: null };
+function getVideoLandmarker() {
+  if (CAM.vlm) return Promise.resolve(CAM.vlm);
+  return (async () => {
+    const mp = await import(MP_BASE + '/vision_bundle.mjs');
+    const files = await mp.FilesetResolver.forVisionTasks(MP_BASE + '/wasm');
+    const opt = d => ({ baseOptions: { modelAssetPath: MP_MODEL, delegate: d }, runningMode: 'VIDEO', numFaces: 1, outputFaceBlendshapes: true });
+    try { const d0 = window.FT_DELEGATE || 'GPU'; CAM.vlm = await mp.FaceLandmarker.createFromOptions(files, opt(d0)); CAM.delegate = d0; }
+    catch (e) { log('GPUで うごかず → CPU: ' + (e && e.message || e)); CAM.vlm = await mp.FaceLandmarker.createFromOptions(files, opt('CPU')); CAM.delegate = 'CPU'; }
+    return CAM.vlm;
+  })();
+}
+async function camStart() {
+  if (CAM.on) return;
+  try {
+    CAM.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 }, frameRate: { ideal: 30 } }, audio: false });
+  } catch (e) {
+    const blocked = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+    $('callInfo').innerHTML = blocked ? 'カメラが ブロックされています。マイクと おなじ やりかたで「カメラ」を 許可にしてね。<button class="btn b-yellow" id="btnCamHelp" style="margin-top:8px;font-size:16px">🛠️ なおしかた</button>' : 'カメラが つかえませんでした（' + (e && e.name || e) + '）';
+    $('callInfo').classList.add('on');
+    if (blocked) $('btnCamHelp').onclick = () => openMicHelp(null, 'scr-call');
+    return;
+  }
+  CAM.video = CAM.video || Object.assign(document.createElement('video'), { muted: true, playsInline: true, autoplay: true });
+  CAM.video.setAttribute('playsinline', ''); CAM.video.srcObject = CAM.stream;
+  try { await CAM.video.play(); } catch (e) {}
+  CAM.on = true; CAM.base = null; $('btnCam').classList.add('on'); toast('📸 かおで うごかすよ');
+  try { await getVideoLandmarker(); } catch (e) { toast('かおの よみとりを じゅんび できなかったよ'); log('動画用の顔よみとり 失敗: ' + e); camStop(); }
+}
+function camStop() {
+  CAM.on = false; CAM.found = false;
+  if (CAM.stream) CAM.stream.getTracks().forEach(t => t.stop()); CAM.stream = null;
+  $('btnCam').classList.remove('on'); delete EX[me()]; send({ t: 'ex', a: null }); updateCamState();
+}
+function updateCamState() {
+  const el = $('camState'); if (!el) return;
+  el.textContent = !CAM.on ? '' : CAM.found ? '📸' : '🙈';
+  $('tbFps').textContent = CAM.on ? `📸 ${CAM.fps}こま/びょう ・ ${CAM.ms}ms ・ ${CAM.delegate || ''}` : '';
+}
+function camTick(now) {
+  // 重いスマホでは 間を あけて、画面の うごきが カクつかないように する
+  if (!CAM.on || !CAM.vlm || !CAM.video || CAM.video.readyState < 2 || now - CAM.last < Math.max(45, CAM.ms * 1.8)) return;
+  CAM.last = now;
+  let r; const t0 = performance.now();
+  try { r = CAM.vlm.detectForVideo(CAM.video, now); } catch (e) { return; }
+  CAM.ms = Math.round(performance.now() - t0); CAM.frames++;
+  if (now - CAM.fpsT > 1000) { CAM.fps = CAM.frames; CAM.frames = 0; CAM.fpsT = now; updateCamState(); }
+  const pts = r && r.faceLandmarks && r.faceLandmarks[0], bs = r && r.faceBlendshapes && r.faceBlendshapes[0];
+  const wasFound = CAM.found; CAM.found = !!(pts && bs);
+  if (wasFound !== CAM.found) updateCamState();
+  if (!CAM.found) { if (wasFound) { delete EX[me()]; send({ t: 'ex', a: null }); } return; }
+  const B = {}; bs.categories.forEach(c => { B[c.categoryName] = c.score; });
+  // かがみと おなじ むきに する（画面の左右を入れかえて 考える）
+  const A = pts[33], Bp = pts[263], nose = pts[1], chin = pts[152];
+  const dx = Bp.x - A.x, dy = A.y - Bp.y, ed = Math.hypot(dx, dy) || 0.1;
+  const roll = Math.atan2(dy, dx);
+  const yaw = ((A.x + Bp.x) / 2 - nose.x) / ed;
+  const pr = (nose.y - (A.y + Bp.y) / 2) / Math.max(0.05, chin.y - (A.y + Bp.y) / 2);
+  if (!CAM.base) CAM.base = { pr, n: 0 }; else if (CAM.base.n < 20) { CAM.base.pr = CAM.base.pr * 0.85 + pr * 0.15; CAM.base.n++; }
+  const e = { bl: B.eyeBlinkLeft || 0, br: B.eyeBlinkRight || 0, jaw: B.jawOpen || 0, smile: ((B.mouthSmileLeft || 0) + (B.mouthSmileRight || 0)) / 2,
+    brow: B.browInnerUp || 0, roll, yaw, pitch: (pr - CAM.base.pr) * 2, t: now };
+  EX[me()] = e;
+  if (S.test && S.testMimic) EX[other(me())] = Object.assign({}, e);
+  if (now - CAM.sent > 50) { CAM.sent = now; const q = x => Math.round(x * 100) / 100; send({ t: 'ex', a: [e.bl, e.br, e.jaw, e.smile, e.brow, e.roll, e.yaw, e.pitch].map(q) }); }
+}
+function onExpr(d) {
+  const k = other(me());
+  if (!Array.isArray(d.a)) { delete EX[k]; return; }
+  if (d.a.length !== 8 || !d.a.every(x => typeof x === 'number' && isFinite(x) && Math.abs(x) < 5)) return;
+  const [bl, br, jaw, smile, brow, roll, yaw, pitch] = d.a, now = performance.now(), prev = EX[k], m = (a, b) => prev && now - prev.t < 300 ? a * 0.5 + b * 0.5 : b;
+  EX[k] = { bl, br, jaw, smile, brow, roll: m(prev && prev.roll, roll), yaw: m(prev && prev.yaw, yaw), pitch: m(prev && prev.pitch, pitch), t: now };
 }
 function drawView(v, now) {
   const key = v.key; if (!key) return;
@@ -1599,6 +1707,7 @@ function levelOf(key) {
 }
 function faceLoop() {
   const now = performance.now();
+  camTick(now);
   VIEWS.forEach(v => { if (v.canvas.offsetParent !== null) drawView(v, now); });
   flushPointer(now);
   requestAnimationFrame(faceLoop);
@@ -1771,6 +1880,7 @@ function setMark(id, x, y) { const m = $(id); m.dataset.x = x; m.dataset.y = y; 
   if (new URLSearchParams(location.search).get('test') === '1') $('btnTest').style.display = 'flex';
   $('btnTest').addEventListener('click', startTest);
   $('tbTalk').addEventListener('click', () => { S.testTalk = !S.testTalk; $('tbTalk').classList.toggle('on', S.testTalk); });
+  $('tbMimic').addEventListener('click', () => { S.testMimic = !S.testMimic; $('tbMimic').classList.toggle('on', S.testMimic); if (!S.testMimic) delete EX[other(me())]; else if (!CAM.on) toast('📸 を おすと、あいて役が きみの かおの まねを するよ'); });
   $('tbFace').addEventListener('click', () => {
     S.testFace = (S.testFace + 1) % 2;
     setFaceData(other(me()), S.testFace === 0 ? myFace : null);
