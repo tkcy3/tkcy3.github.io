@@ -161,6 +161,9 @@ ol.steps li{margin:6px 0}
 .adjBox img{width:100%;height:100%;display:block;border-radius:20px}
 .mk{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid #E0703A;
   display:flex;align-items:center;justify-content:center;font-size:22px;touch-action:none;user-select:none}
+.testBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;max-width:640px;background:#E9E2FF;border-radius:14px;padding:6px 10px;font-weight:bold;font-size:14px}
+.testBar button{border:0;border-radius:999px;background:#fff;font:inherit;font-size:14px;padding:6px 12px;box-shadow:0 2px 0 #C9BDF0}
+.testBar button.on{background:#8F7BEA;color:#fff}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#4A3826;color:#fff;padding:10px 18px;
   border-radius:999px;font-size:16px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
@@ -181,7 +184,8 @@ ol.steps li{margin:6px 0}
 <section id="scr-start" class="scr on">
   <a class="tPortal hidden" id="tPortal" href="/">‹ 一覧</a>
   <h1>🤪 ふぇいすトーク</h1>
-  <div class="ver">しゃべる かおで あそぼう　v<span id="ver"></span></div>
+  <div class="ver" id="verTap">しゃべる かおで あそぼう　v<span id="ver"></span></div>
+  <button class="btn b-gray" id="btnTest" type="button" style="display:none;max-width:520px;background:#8F7BEA">🧪 テストモード（ひとりで ためす）</button>
 
   <div class="card">
     <label class="lb" for="name">なまえ（ニックネーム）</label>
@@ -277,6 +281,10 @@ ol.steps li{margin:6px 0}
 <!-- ③ 通話 -->
 <section id="scr-call" class="scr">
  <div class="callMain">
+  <div class="testBar" id="testBar" style="display:none">🧪 テスト
+    <button type="button" id="tbTalk">🗣 あいてを しゃべらせる</button>
+    <button type="button" id="tbFace">🔁 あいての かお</button>
+  </div>
   <div class="topRow"><div class="status" id="callStatus">つないでいます…</div>
     <div class="ctl">
     <button class="micbtn" id="btnMic" aria-label="マイク">
@@ -405,7 +413,7 @@ ol.steps li{margin:6px 0}
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script>
 'use strict';
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 const PREFIX = 'facetalk-v1-';
 // TURNは使わない。PeerJSの初期設定にはPeerJS提供のTURNが含まれるため、STUNだけに上書きする。
 const ICE_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
@@ -751,7 +759,7 @@ $('btnHang').addEventListener('click', () => {
   setTimeout(() => { teardown(); show('scr-start'); refreshResume(); }, 200);
 });
 function teardown(keepMic) {
-  S.phase = 'ended'; S.peerReady = false;
+  S.phase = 'ended'; S.peerReady = false; S.test = false; S.testTalk = false; $('testBar').style.display = 'none';
   if (S.conn) dropConn(S.conn);
   if (S.call) dropCall(S.call);
   if (S.peer) { try { S.peer.destroy(); } catch (e) {} S.peer = null; }
@@ -889,7 +897,7 @@ function render() {
   $('icMicOn').style.display = S.micOn ? '' : 'none'; $('icMicOff').style.display = S.micOn ? 'none' : '';
 
   const cs = $('callStatus'); let info = '';
-  if (S.phase === 'connected') { cs.textContent = '🟢 つながっています'; cs.className = 'status st-ok';
+  if (S.phase === 'connected') { cs.textContent = S.test ? '🧪 テストモード（ひとり）' : '🟢 つながっています'; cs.className = 'status st-ok';
     if (!S.remoteMicOn) info = 'あいての マイクは オフに なっています'; }
   else if (S.phase === 'reconnecting') { cs.textContent = '🟡 つなぎなおしています…'; cs.className = 'status st-warn';
     info = S.role === 'host' ? 'あいてが もどってくるのを まっています。この がめんの まま まってね。' : 'すこし まってね。じどうで つなぎなおします。'; }
@@ -1044,6 +1052,11 @@ function sendChat(text) {
   const m = { id: S.myTag + '-' + (++S.msgSeq) + '-' + Date.now().toString(36), from: 'me', text, st: 'sending' };
   S.chat.push(m); renderChat(); saveChat();
   if (S.conn && S.conn.open) send({ t: 'chat', id: m.id, text: m.text });
+  if (S.test) {   // テスト：とどいたことにして、あいて役が へんじする
+    m.st = 'sent';
+    setTimeout(() => { if (!S.test) return; S.chat.push({ id: 't' + Date.now(), from: 'you', text: ['😂 わらった', '👏 すごい！', 'え〜！ なにそれ', '🤔 むずかしい…', 'もういっかい！'][Math.floor(Math.random() * 5)] }); renderChat(); }, 900);
+    renderChat();
+  }
 }
 function flushOutbox() { S.chat.forEach(m => { if (m.from === 'me' && m.st === 'sending') send({ t: 'chat', id: m.id, text: m.text }); }); }
 function onChat(d) {
@@ -1570,6 +1583,11 @@ function levelOf(key) {
   if (key === 'p') return 0;
   if (key === me()) return S.micOn ? Math.min(1, S.localLevel * 4) : 0;
   if (S.phase !== 'connected' || !S.remoteMicOn) return 0;
+  if (S.test) {   // テスト：しゃべっているような 声の大きさを つくる
+    if (!S.testTalk) return 0;
+    const t = performance.now() / 1000, syl = Math.max(0, Math.sin(t * 11) * 0.5 + Math.sin(t * 7.3) * 0.5), phrase = Math.sin(t * 1.1) > -0.35 ? 1 : 0;
+    return Math.min(1, syl * phrase * 0.9);
+  }
   let lv = S.remoteLevel || 0;
   if (S.remoteAnalyser) {
     const buf = S.remoteBuf || (S.remoteBuf = new Uint8Array(S.remoteAnalyser.fftSize)); S.remoteAnalyser.getByteTimeDomainData(buf);
@@ -1744,6 +1762,33 @@ function setMark(id, x, y) { const m = $(id); m.dataset.x = x; m.dataset.y = y; 
   };
   $('adjCancel').onclick = () => show(S.role && S.phase !== 'ended' && S.phase !== 'idle' ? 'scr-call' : 'scr-start');
 })();
+
+/* ---------- テストモード（かくし：はじめの画面の バージョン表示を 5回 タップ、または URL に ?test=1） ----------
+   通信は つかわず、ひとりで 顔の動き・いじる道具・チャットの見た目を ためせる。あいて役は 自分の顔のコピーか イラスト。 */
+(function setupTestMode() {
+  let taps = [], open = () => { $('btnTest').style.display = 'flex'; toast('🧪 テストモードが つかえるよ'); };
+  $('verTap').addEventListener('click', () => { const t = Date.now(); taps = taps.filter(x => t - x < 2500); taps.push(t); if (taps.length >= 5) { taps = []; open(); } });
+  if (new URLSearchParams(location.search).get('test') === '1') $('btnTest').style.display = 'flex';
+  $('btnTest').addEventListener('click', startTest);
+  $('tbTalk').addEventListener('click', () => { S.testTalk = !S.testTalk; $('tbTalk').classList.toggle('on', S.testTalk); });
+  $('tbFace').addEventListener('click', () => {
+    S.testFace = (S.testFace + 1) % 2;
+    setFaceData(other(me()), S.testFace === 0 ? myFace : null);
+    FS[other(me())] = newShape();
+    toast(S.testFace === 0 ? 'あいて役：じぶんの かお' : 'あいて役：イラストの かお');
+  });
+})();
+async function startTest() {
+  err('startErr', ''); readName();
+  try { await prepareMic(); S.micOn = true; S.localStream.getAudioTracks().forEach(t => t.enabled = true); }
+  catch (e) { toast('マイクなしで テストするよ'); }
+  S.test = true; S.testTalk = false; S.testFace = myFace ? 0 : 1;
+  S.role = 'host'; S.room = 'TEST'; S.remoteName = 'あいて役'; S.remoteMicOn = true;
+  resetShapes(); bindFaceKeys(); setFaceData(other(me()), S.testFace === 0 ? myFace : null);
+  clearChat(); S.everConnected = true; S.phase = 'connected';
+  $('testBar').style.display = 'flex'; $('tbTalk').classList.remove('on');
+  show('scr-call'); setFocus('you'); render(); addSys('🧪 テストモードだよ。じぶんの かおも あいて役の かおも いじれるよ');
+}
 
 /* ---------- 起動時 ---------- */
 function refreshResume() {
