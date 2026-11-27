@@ -78,6 +78,13 @@ table.diag td{padding:4px 6px;border-bottom:1px solid #EEDDBB;vertical-align:top
 table.diag td:first-child{color:var(--sub);white-space:nowrap;width:9em}
 #log{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#2E2419;color:#F2E6CF;border-radius:10px;
   padding:8px;max-height:180px;overflow:auto;white-space:pre-wrap;margin-top:8px}
+ol.steps{margin:6px 0 0;padding-left:1.4em;line-height:1.7}
+ol.steps li{margin:6px 0}
+.stepHead{font-weight:bold;margin-top:12px}
+.stepHead:first-child{margin-top:0}
+.kbd{display:inline-block;padding:0 6px;border-radius:6px;background:#F1E2C2;font-weight:bold}
+.micState{font-weight:bold;text-align:center;font-size:17px}
+.warnCard{background:#FFF0C2;box-shadow:0 3px 0 #E7CF85}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#4A3826;color:#fff;padding:10px 18px;
   border-radius:999px;font-size:16px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
@@ -103,6 +110,24 @@ table.diag td:first-child{color:var(--sub);white-space:nowrap;width:9em}
     <p class="big">🎤 このゲームは、あいてと <b>おはなし</b> しながら あそぶよ。</p>
     <p>ボタンを おすと「マイクを つかってもいい？」と きかれるので、<b>「許可」</b>を おしてね。</p>
     <p class="small">こえは あいての スマホに ちょくせつ とどきます。どこにも ほぞんされません。</p>
+  </div>
+
+  <div class="card warnCard" id="inAppCard" style="display:none">
+    <p class="big">⚠️ <b id="inAppName">アプリ</b>の なかで ひらいています</p>
+    <p>アプリの なかの ブラウザでは、マイクが つかえないことが あるよ。<b>Chrome</b> や <b>Safari</b> で ひらきなおしてね。</p>
+    <div class="row" style="margin-top:8px"><a class="btn b-blue" id="inAppOpen" style="text-decoration:none;font-size:17px">🌐 ブラウザで ひらく</a></div>
+    <div class="row" style="margin-top:8px"><button class="btn b-gray" id="inAppCopy" style="font-size:16px">🔗 URLを コピーする</button></div>
+  </div>
+
+  <div class="card" id="micBadge" style="display:none">
+    <div class="micState" id="micBadgeTxt"></div>
+    <div style="height:8px"></div>
+    <button class="btn b-yellow" id="btnMicFix" style="font-size:17px">🛠️ マイクの なおしかた</button>
+  </div>
+
+  <div class="card" id="pendingCard" style="display:none">
+    <p>マイクの せっていは できたかな？ さっきの つづきから はじめられるよ。</p>
+    <button class="btn b-yellow" id="btnPending">▶ つづきから はじめる</button>
   </div>
 
   <div class="card" id="resumeCard" style="display:none">
@@ -221,6 +246,24 @@ table.diag td:first-child{color:var(--sub);white-space:nowrap;width:9em}
   </details>
 </section>
 
+<!-- ⑤ マイクのなおしかた -->
+<section id="scr-mic" class="scr">
+  <h1>🎤 マイクを つかえるように しよう</h1>
+  <div class="card">
+    <p>マイクが <b>「ブロック」</b> に なっているので、あいてに こえが とどきません。<br>したの じゅんばんで なおしてね。なおったら <b>「もういちど ためす」</b> を おしてね。</p>
+    <div class="micState" id="micHelpState" style="margin-top:8px"></div>
+  </div>
+  <div class="card" id="micSteps"></div>
+  <button class="btn b-green" id="btnMicRetry" style="max-width:520px">🎤 もういちど ためす</button>
+  <button class="btn b-blue" id="btnMicReload" style="max-width:520px">🔄 ページを よみこみなおす</button>
+  <div class="msg err" id="micErr" style="max-width:520px;width:100%"></div>
+  <details style="max-width:520px">
+    <summary>ほかの スマホの なおしかた</summary>
+    <div class="card" id="micStepsAll" style="padding:12px"></div>
+  </details>
+  <button class="btn b-gray" id="btnMicBack" style="max-width:520px">もどる</button>
+</section>
+
 <!-- ④ 失敗・終了 -->
 <section id="scr-end" class="scr">
   <h1 id="endTitle">つながりませんでした</h1>
@@ -236,7 +279,7 @@ table.diag td:first-child{color:var(--sub);white-space:nowrap;width:9em}
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script>
 'use strict';
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const PREFIX = 'oekaki2p-v1-';
 // TURNは使わない。PeerJSの初期設定にはPeerJS提供のTURNが含まれるため、STUNだけに上書きする。
 const ICE_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
@@ -283,7 +326,8 @@ async function copyText(t) {
     let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove(); return ok;
   }
 }
-function inviteUrl() { return location.origin + location.pathname + '?room=' + S.room; }
+// openExternalBrowser=1 … LINEのトークで押したとき、LINEの中ではなく いつものブラウザで開く（LINE公式の仕組み）
+function inviteUrl() { return location.origin + location.pathname + '?room=' + S.room + '&openExternalBrowser=1'; }
 
 /* ---------- 名前 ---------- */
 try { $('name').value = localStorage.getItem('oekaki2p-name') || ''; } catch (e) {}
@@ -308,12 +352,12 @@ async function prepareMic() {
     });
   } catch (e) {
     if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError'))
-      throw { friendly: 'マイクが「ブロック」に なっているよ。<br>アドレスバーの 🔒 や ⓘ を おして、マイクを <b>「許可」</b> にしてから もういちど おしてね。' };
+      throw { denied: true, friendly: 'マイクが「ブロック」に なっているよ。' };
     if (e && e.name === 'NotFoundError') throw { friendly: 'マイクが みつからないよ。' };
     if (e && e.name === 'NotReadableError') throw { friendly: 'ほかの アプリが マイクを つかっているみたい。通話アプリなどを とじてね。' };
     throw { friendly: 'マイクの じゅんびに しっぱいしたよ（' + (e && e.name || e) + '）' };
   }
-  S.localStream.getAudioTracks().forEach(t => { t.enabled = S.micOn; t.onended = () => log('マイクが止まった'); });
+  S.localStream.getAudioTracks().forEach(t => { t.enabled = S.micOn; t.onended = onMicEnded; });
   if (S.audioCtx) {
     try {
       const src = S.audioCtx.createMediaStreamSource(S.localStream);
@@ -696,7 +740,7 @@ function render() {
     info = S.role === 'host' ? 'あいてが もどってくるのを まっています。この がめんの まま まってね。' : 'すこし まってね。じどうで つなぎなおします。'; }
   else if (S.phase === 'connecting') { cs.textContent = '🟡 つないでいます…（' + S.attempt + '回め）'; cs.className = 'status st-warn'; }
   else if (S.phase === 'waiting') { cs.textContent = 'あいてを まっています'; cs.className = 'status st-warn'; }
-  err('callInfo', info);
+  if (!document.getElementById('btnMicFix2')) err('callInfo', info);
 
   if (S.phase === 'waiting') {
     const w = $('waitStatus');
@@ -770,13 +814,25 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', () => { send({ t: 'leaving' }); });
 
 /* ---------- ボタン ---------- */
-async function start(fn) {
+// a = {k:'create'} | {k:'join', code} | {k:'host', room} | {k:'guest', room}
+function actionFn(a) {
+  if (a.k === 'create') return () => createRoom();
+  if (a.k === 'join' || a.k === 'guest') return () => joinRoom(a.code || a.room);
+  if (a.k === 'host') return () => createRoom(a.room);
+  return () => Promise.resolve();
+}
+async function start(a) {
   err('startErr', '');
   readName();
   try { await prepareMic(); }
-  catch (e) { err('startErr', e.friendly || String(e)); return; }
+  catch (e) {
+    if (e.denied) { openMicHelp(a, 'scr-start'); return; }
+    err('startErr', e.friendly || String(e)); return;
+  }
+  clearPending();
   S.micOn = true; S.localStream.getAudioTracks().forEach(t => t.enabled = true);
-  try { await fn(); }
+  updateMicBadge();
+  try { await actionFn(a)(); }
   catch (e) {
     log('開始失敗: ' + (e.type || '') + ' ' + (e.message || e.friendly || e));
     teardown(true); show('scr-start');
@@ -788,16 +844,16 @@ async function start(fn) {
     refreshResume();
   }
 }
-$('btnCreate').addEventListener('click', () => start(() => createRoom()));
+$('btnCreate').addEventListener('click', () => start({ k: 'create' }));
 $('btnJoin').addEventListener('click', () => {
   const code = $('code').value.replace(/\D/g, '');
   if (code.length !== 6) { err('startErr', 'へやばんごうは 6けたの すうじ だよ。'); return; }
-  start(() => joinRoom(code));
+  start({ k: 'join', code });
 });
 $('code').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
 $('btnResume').addEventListener('click', () => {
   const s = loadSession(); if (!s) return;
-  if (s.role === 'host') start(() => createRoom(s.room)); else start(() => joinRoom(s.room));
+  start(s.role === 'host' ? { k: 'host', room: s.room } : { k: 'guest', room: s.room });
 });
 $('btnShare').addEventListener('click', async () => {
   const url = inviteUrl(), text = 'おえかきトークで あそぼう！ へやばんごう ' + S.room;
@@ -809,8 +865,147 @@ $('btnCancelWait').addEventListener('click', () => { teardown(); show('scr-start
 $('btnEndHome').addEventListener('click', () => { teardown(); show('scr-start'); refreshResume(); });
 $('btnEndRetry').addEventListener('click', () => {
   const role = S.retryRole, room = S.retryRoom; show('scr-start');
-  if (role === 'guest' && room) start(() => joinRoom(room)); else if (role === 'host') start(() => createRoom(room));
+  if (role === 'guest' && room) start({ k: 'guest', room }); else if (role === 'host') start({ k: 'host', room });
 });
+
+/* ---------- マイクの許可を やりなおす ---------- */
+const UA = navigator.userAgent;
+const PF = (() => {
+  const ios = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
+  const android = /Android/.test(UA);
+  const inApp = /\bLine\//i.test(UA) ? 'LINE' : /FBAN|FBAV|FB_IAB/.test(UA) ? 'Facebook' : /Instagram/.test(UA) ? 'Instagram' : '';
+  const kind = inApp ? 'inapp' : ios ? (/CriOS/.test(UA) ? 'ios-chrome' : 'ios-safari') : android ? 'android' : 'pc';
+  return { ios, android, inApp, kind };
+})();
+const HOST = location.host;
+const STEPS = {
+  'android': ['Android の Chrome', `
+    <div class="stepHead">① かんたんな なおしかた</div>
+    <ol class="steps">
+      <li>いちばん上の アドレス（${HOST}）の <b>ひだりはしの アイコン</b> を おす</li>
+      <li><span class="kbd">権限</span> を おす</li>
+      <li><span class="kbd">マイク</span> を <b>オン（許可）</b> にする</li>
+    </ol>
+    <div class="stepHead">② ①で できないとき</div>
+    <ol class="steps">
+      <li>Chrome の右上の <span class="kbd">︙</span> →「<b>設定</b>」</li>
+      <li>「<b>サイトの設定</b>」→「<b>マイク</b>」</li>
+      <li>「ブロック中」の なかの <b>${HOST}</b> を おして →「<b>許可</b>」</li>
+    </ol>
+    <div class="stepHead">③ それでも だめなとき（スマホ ぜんたいの せってい）</div>
+    <ol class="steps">
+      <li>スマホの「<b>設定</b>」→「<b>アプリ</b>」→「<b>Chrome</b>」</li>
+      <li>「<b>権限</b>」→「<b>マイク</b>」を 許可にする</li>
+    </ol>`],
+  'ios-safari': ['iPhone の Safari', `
+    <div class="stepHead">① まずは これ</div>
+    <ol class="steps">
+      <li>したの <b>「ページを よみこみなおす」</b> を おす</li>
+      <li>もういちど「マイク」を きかれたら <b>「許可」</b> を おす</li>
+    </ol>
+    <div class="stepHead">② きかれないとき（この サイトだけ なおす）</div>
+    <ol class="steps">
+      <li>アドレスの <b>ひだりの ボタン</b>（ページメニュー）を おす<br><span class="small">iOS 26・18 は そのあと <span class="kbd">…</span> を おす。iOS 17 までは「ぁあ」の ボタン</span></li>
+      <li>「<b>Webサイトの設定</b>」→「<b>マイク</b>」</li>
+      <li>「<b>許可</b>」か「<b>確認</b>」を えらぶ</li>
+    </ol>
+    <div class="stepHead">③ それでも だめなとき（設定アプリ）</div>
+    <ol class="steps">
+      <li>「<b>設定</b>」→「<b>アプリ</b>」→「<b>Safari</b>」<br><span class="small">iOS 17 までは「設定」→「Safari」</span></li>
+      <li>下のほうの「<b>マイク</b>」→「<b>確認</b>」か「<b>許可</b>」</li>
+      <li>この ページを よみこみなおす</li>
+    </ol>`],
+  'ios-chrome': ['iPhone の Chrome', `
+    <ol class="steps">
+      <li>「<b>設定</b>」アプリ →「<b>プライバシーとセキュリティ</b>」→「<b>マイク</b>」</li>
+      <li>「<b>Chrome</b>」を <b>オン</b> にする</li>
+      <li>Chrome に もどって、したの「ページを よみこみなおす」を おす</li>
+      <li>もういちど きかれたら「<b>許可</b>」を おす</li>
+    </ol>`],
+  'pc': ['パソコン', `
+    <ol class="steps">
+      <li>アドレスバーの <b>ひだりの アイコン</b> を おす</li>
+      <li>「<b>マイク</b>」を「<b>許可</b>」にする</li>
+      <li>ページを よみこみなおす</li>
+    </ol>`],
+};
+function inAppHtml() {
+  return `<p><b>${PF.inApp}</b> の なかの ブラウザで ひらいています。アプリの なかでは マイクが つかえないことが あるので、<b>Chrome</b> や <b>Safari</b> で ひらきなおしてね。</p>
+    <ol class="steps"><li>右上の メニューから「<b>ブラウザで開く</b>」などを えらぶ</li><li>または URLを コピーして、Chrome や Safari に はりつける</li></ol>`;
+}
+function renderMicSteps() {
+  const mine = PF.kind === 'inapp' ? null : STEPS[PF.kind];
+  $('micSteps').innerHTML = PF.kind === 'inapp' ? inAppHtml() : `<div class="small" style="margin-bottom:4px">${mine[0]} の ばあい</div>` + mine[1];
+  $('micStepsAll').innerHTML = Object.keys(STEPS).filter(k => k !== PF.kind)
+    .map(k => `<div style="margin-bottom:14px"><div style="font-weight:bold;font-size:17px">📱 ${STEPS[k][0]}</div>${STEPS[k][1]}</div>`).join('');
+}
+const PENDING_KEY = 'oekaki2p-pending';
+function savePending(a) { try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(a)); } catch (e) {} }
+function loadPending() { try { return JSON.parse(sessionStorage.getItem(PENDING_KEY) || 'null'); } catch (e) { return null; } }
+function clearPending() { try { sessionStorage.removeItem(PENDING_KEY); } catch (e) {} $('pendingCard').style.display = 'none'; }
+
+S.micPerm = null; S.helpAction = null; S.helpReturn = 'scr-start';
+const PERM_TXT = { granted: '🎤 マイク：✅ 許可されています', denied: '🎤 マイク：⛔ ブロックされています', prompt: '🎤 マイク：まだ きめていません' };
+async function watchMicPermission() {
+  if (!navigator.permissions || !navigator.permissions.query) return;
+  try {
+    const p = await navigator.permissions.query({ name: 'microphone' });
+    S.micPerm = p.state; updateMicBadge();
+    p.onchange = () => {
+      log('マイクの許可が変わった: ' + p.state);
+      S.micPerm = p.state; updateMicBadge();
+      if (p.state === 'granted' && $('scr-mic').classList.contains('on')) { toast('マイクが 許可されたよ！'); micRetry(); }
+    };
+  } catch (e) { /* 対応していないブラウザ */ }
+}
+function updateMicBadge() {
+  const st = S.micPerm;
+  $('micBadge').style.display = st === 'denied' ? 'block' : 'none';
+  $('micBadgeTxt').textContent = PERM_TXT.denied;
+  $('micHelpState').textContent = st ? 'いまの せってい … ' + PERM_TXT[st].replace('🎤 マイク：', '') : '';
+}
+function openMicHelp(a, ret) {
+  S.helpAction = a || null; S.helpReturn = ret || 'scr-start';
+  if (a) savePending(a);
+  renderMicSteps(); err('micErr', ''); updateMicBadge();
+  show('scr-mic'); window.scrollTo(0, 0);
+}
+async function micRetry() {
+  err('micErr', '');
+  try {
+    if (S.localStream) { S.localStream.getTracks().forEach(t => t.stop()); S.localStream = null; S.analyser = null; }
+    await prepareMic();
+  } catch (e) {
+    err('micErr', e.denied ? 'まだ ブロックされているみたい。うえの じゅんばんで せっていを かえてから、もういちど おしてね。<br>なおらないときは「ページを よみこみなおす」を ためしてね。' : (e.friendly || String(e)));
+    return;
+  }
+  toast('マイクが つかえるように なったよ！');
+  updateMicBadge();
+  if (S.helpReturn === 'scr-call') {
+    // 通話中に止まったマイクを、相手へ送る音声に差しかえる
+    const tr = S.localStream.getAudioTracks()[0];
+    const snd = S.call && S.call.peerConnection && S.call.peerConnection.getSenders().find(x => x.track === null || (x.track && x.track.kind === 'audio'));
+    if (snd && tr) { try { await snd.replaceTrack(tr); } catch (e) { log('マイク差しかえ失敗: ' + e); } }
+    tr.enabled = S.micOn; err('callInfo', ''); show('scr-call'); return;
+  }
+  const a = S.helpAction; S.helpAction = null;
+  show('scr-start');
+  if (a) start(a); else clearPending();
+}
+function onMicEnded() {
+  log('マイクが止まった');
+  if (S.phase === 'connected' || S.phase === 'reconnecting' || S.phase === 'waiting') {
+    toast('マイクが とまったよ');
+    $('callInfo').innerHTML = 'マイクが とまりました。<button class="btn b-yellow" id="btnMicFix2" style="margin-top:8px;font-size:16px">🛠️ マイクを なおす</button>';
+    $('callInfo').classList.add('on');
+    $('btnMicFix2').onclick = () => openMicHelp(null, $('scr-wait').classList.contains('on') ? 'scr-wait' : 'scr-call');
+  }
+}
+$('btnMicRetry').addEventListener('click', micRetry);
+$('btnMicReload').addEventListener('click', () => { if (S.helpAction) savePending(S.helpAction); location.reload(); });
+$('btnMicBack').addEventListener('click', () => { show(S.helpReturn); if (S.helpReturn === 'scr-start') refreshResume(); });
+$('btnMicFix').addEventListener('click', () => openMicHelp(null, 'scr-start'));
+$('btnPending').addEventListener('click', () => { const a = loadPending(); if (a) start(a); });
 
 /* ---------- 起動時 ---------- */
 function refreshResume() {
@@ -826,6 +1021,14 @@ function refreshResume() {
     $('joinCard').parentNode.insertBefore($('joinCard'), $('btnCreate').closest('.card'));
   }
   refreshResume();
+  if (loadPending()) $('pendingCard').style.display = 'block';
+  if (PF.inApp) {
+    $('inAppCard').style.display = 'block'; $('inAppName').textContent = PF.inApp;
+    const u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1');
+    $('inAppOpen').href = u.toString();
+    $('inAppCopy').onclick = async () => { u.searchParams.delete('openExternalBrowser'); toast(await copyText(u.toString()) ? 'URLを コピーしたよ' : 'コピーできなかったよ'); };
+  }
+  watchMicPermission();
   if (typeof Peer === 'undefined') err('startErr', 'つうしんの じゅんびが よみこめませんでした。インターネットに つながっているか たしかめて、ページを ひらきなおしてね。');
   log('起動 v' + VERSION + ' / ' + navigator.userAgent);
   render();
