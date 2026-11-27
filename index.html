@@ -122,29 +122,6 @@ button:active{transform:scale(.97)}
 </div></div>
 
 <!-- consent (shared by every game) -->
-<div class="ov" id="csOv"><div class="sheet">
-  <h2>📝 プレイデータの送信について</h2>
-  <div class="cs">
-    <p>より遊びやすいゲームにするため、プレイの記録を作者に送らせてください。集めた記録は<b>ゲームバランスの調整・改善のためだけ</b>に使います。ここで選んだ内容は、すべてのゲームに共通です。</p>
-    <h3>送る内容</h3>
-    <ul><li>KROPKI：問題をクリアしたときの記録（サイズ・難しさ・問題番号・タイム・チェックの回数）</li>
-        <li>Dungeon Chain：冒険の記録（職業・到達した階・ターン数・レベル・倒した数・覚えたスキル・倒された相手など）</li>
-        <li>LAPIS：ゲームが終わったときの記録（点数・いちばん大きい星・手数・最大連鎖・選んだ加護・戻すと－を使った回数・プレイ時間）</li>
-        <li>ゲーム一覧：どのゲームを開いたか</li>
-        <li>ゲームのバージョンと、端末ごとにランダムに作られる番号（同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません）</li></ul>
-    <h3>送らないもの</h3>
-    <ul><li>名前・冒険者名・メールアドレス・電話番号・位置情報など、個人を特定できる情報</li>
-        <li>写真・連絡先・ほかのアプリなど、端末の中の情報</li></ul>
-    <h3>そのほか</h3>
-    <ul><li>記録を第三者に渡すことはありません</li>
-        <li>送るかどうかは、設定からいつでも変えられます</li>
-        <li>送らない場合も、ゲームはすべて同じように遊べます</li></ul>
-  </div>
-  <label class="csChk"><input type="checkbox" id="csChk"><span>上記の内容を確認しました</span></label>
-  <button class="pri" id="csYes" disabled>同意して送信する</button>
-  <button class="plain" id="csNo">送信しない</button>
-</div></div>
-
 <!-- what's new -->
 <div class="ov" id="clOv"><div class="sheet">
   <h2>📋 更新内容</h2>
@@ -166,6 +143,7 @@ button:active{transform:scale(.97)}
 <script>
 (function(){
 var CHANGELOG = [
+  {v:'0.6.4', d:'2026-11-28', items:['📝 プレイ記録の送信の同意を、すべてのゲームで同じ画面・同じ内容にそろえました（たわーばとるも追加）']},
   {v:'0.6.3', d:'2026-11-28', items:['🧱 たわーばとるのアイコンを新しくしました']},
   {v:'0.6.2', d:'2026-11-28', items:['🔤 ゲームの名前が、へんなところで折り返さないようにしました']},
   {v:'0.6.1', d:'2026-11-28', items:['🔲 ゲームのアイコンの大きさを、どれも同じにそろえました']},
@@ -199,18 +177,95 @@ var $ = function(id){ return document.getElementById(id); };
 try { sessionStorage.setItem('tkcy3_portal', '1'); } catch(e) {}   // games opened from here skip their own install screen
 function ls(k, v){ try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(e) { return null; } }
 
-/* ---- shared consent: one answer for every game on tkcy3.github.io ----
-   key 'tkcy3_consent_v1' = {"v":1,"ok":1|0,"at":time}. The games read it too.  */
-var CS_KEY = 'tkcy3_consent_v1', CS_VER = 1;
-function csGet(){ try { return JSON.parse(ls(CS_KEY) || 'null'); } catch(e) { return null; } }
-function csSet(ok){ ls(CS_KEY, JSON.stringify({v:CS_VER, ok:ok ? 1 : 0, at:Date.now()})); ls('tkcy3_share', ok ? '1' : '0'); }
-(function adoptOld(){   // answers already given inside KROPKI / Dungeon Chain count
-  if (csGet()) return;
+/*TKCS-BEGIN*/
+/* ===== プレイ記録の送信の同意（tkcy3.github.io の全ゲーム共通。どのゲームにも同じものが入っています） =====
+   - 答えは1つだけ保存し、ポータルとすべてのゲームで共有する（どこで答えても全部に反映）
+   - 送る内容が増えたら CS_VER を上げる。前の版で「同意」していた人には、新しい内容で1回だけ聞き直す
+     （「送信しない」と答えた人には聞き直さない）
+   - 同意していても、設定でオフ（tkcy3_share='0'）なら送らない                                   */
+var TKCS = (function(){
+  var KEY = 'tkcy3_consent_v1', SHARE = 'tkcy3_share', CS_VER = 2;
+  var ITEMS = [
+    ['Dungeon Chain', '冒険の記録（職業・到達した階・ターン数・レベル・倒した数・最長チェーン・覚えたスキルや強化・倒された相手 など）'],
+    ['KROPKI', '問題をクリアしたときの記録（サイズ・難しさ・問題番号・タイム・チェックの回数）'],
+    ['LAPIS', 'ゲームが終わったときの記録（点数・いちばん大きい星・手数・最大連鎖・選んだ加護・KEEPとワームホールを使った回数・プレイ時間）'],
+    ['たわーばとる', 'ゲームが終わったときの記録（遊び方・お題・画像のさがし先・積んだ数・とどいた高さ・勝ち負け・まわした回数・プレイ時間）'],
+    ['ゲームポータル', 'どのゲームを開いたか']
+  ];
+  function lsGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
+  function lsSet(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }
+  function rec(){ try { return JSON.parse(lsGet(KEY) || 'null'); } catch(e) { return null; } }
+  function write(ok){ lsSet(KEY, JSON.stringify({v:CS_VER, ok:ok ? 1 : 0, at:Date.now()})); lsSet(SHARE, ok ? '1' : '0'); }
+  function agreed(){ var c = rec(); return !!(c && c.ok && (c.v || 1) >= CS_VER); }
+  function needAsk(){ var c = rec(); return !c || (c.ok && (c.v || 1) < CS_VER); }
+  function on(){ return agreed() && lsGet(SHARE) !== '0'; }
+  /* a game that kept its own answer before the shared one existed: adopt it (an old "yes" is asked again once) */
+  function adopt(ok){ if (rec() || ok === undefined || ok === null) return; lsSet(KEY, JSON.stringify({v:1, ok:ok ? 1 : 0, at:Date.now()})); }
+  var css = '#tkcsOv{position:fixed;inset:0;z-index:99999;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5);padding:env(safe-area-inset-top) 0 0;font-family:inherit}'
+    + '#tkcsOv.on{display:flex}'
+    + '#tkcsOv .tkcs{width:100%;max-width:520px;max-height:92%;overflow-y:auto;box-sizing:border-box;padding:22px 20px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#fbf8f2;color:#2d2c2a;text-align:left;-webkit-overflow-scrolling:touch}'
+    + '#tkcsOv h2{margin:0 0 10px;font-size:20px;text-align:center}'
+    + '#tkcsOv p{margin:0 0 6px;font-size:15px;line-height:1.65}'
+    + '#tkcsOv h3{margin:14px 0 4px;font-size:15.5px;color:#a8741a}'
+    + '#tkcsOv ul{margin:0;padding-left:1.25em;font-size:14.5px;line-height:1.65}'
+    + '#tkcsOv li b{font-weight:800}'
+    + '#tkcsOv label{display:flex;align-items:center;gap:10px;margin:16px 0 12px;font-size:16px;font-weight:700}'
+    + '#tkcsOv label input{width:24px;height:24px;margin:0;accent-color:#c98f3a}'
+    + '#tkcsOv button{display:block;width:100%;border:0;font:inherit;cursor:pointer}'
+    + '#tkcsOv .y{height:54px;border-radius:14px;background:#c98f3a;color:#fff;font-size:18px;font-weight:800}'
+    + '#tkcsOv .y:disabled{opacity:.4}'
+    + '#tkcsOv .n{margin-top:6px;padding:12px;background:none;color:#7a7670;font-size:15px;text-decoration:underline}'
+    + '@media (prefers-color-scheme:dark){#tkcsOv .tkcs{background:#2f3338;color:#eceae5}#tkcsOv h3{color:#e0b060}#tkcsOv .n{color:#a5aab2}}';
+  var ov = null, after = null;
+  function build(){
+    if (ov) return;
+    var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+    ov = document.createElement('div'); ov.id = 'tkcsOv';
+    ov.innerHTML = '<div class="tkcs" role="dialog" aria-modal="true">'
+      + '<h2>📝 プレイ記録の送信について</h2>'
+      + '<p>より遊びやすいゲームにするため、プレイの記録を作者に送らせてください。集めた記録は<b>ゲームの調整・改善のためだけ</b>に使います。</p>'
+      + '<p>ここでの答えは、ゲームポータルとすべてのゲームに共通です。</p>'
+      + '<h3>送る内容</h3><ul>' + ITEMS.map(function(x){ return '<li><b>' + x[0] + '</b>：' + x[1] + '</li>'; }).join('')
+      + '<li>ゲームのバージョンと、端末ごとにランダムに作られる番号（同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません）</li></ul>'
+      + '<h3>送らないもの</h3><ul><li>名前（冒険者名・ネット対戦の名前もふくむ）・メールアドレス・電話番号・位置情報など、個人を特定できる情報</li>'
+      + '<li>チャットの中身・写真・連絡先・ほかのアプリなど、端末の中の情報</li></ul>'
+      + '<h3>そのほか</h3><ul><li>記録を第三者に渡すことはありません</li><li>送るかどうかは、設定からいつでも変えられます</li><li>送らない場合も、ゲームはすべて同じように遊べます</li></ul>'
+      + '<label><input type="checkbox" id="tkcsChk"><span>上記の内容を確認しました</span></label>'
+      + '<button class="y" id="tkcsYes" disabled>同意して送信する</button>'
+      + '<button class="n" id="tkcsNo">送信しない</button></div>';
+    document.body.appendChild(ov);
+    var chk = ov.querySelector('#tkcsChk'), yes = ov.querySelector('#tkcsYes');
+    chk.onchange = function(){ yes.disabled = !chk.checked; };
+    yes.onclick = function(){ if (chk.checked) done(true); };
+    ov.querySelector('#tkcsNo').onclick = function(){ done(false); };
+  }
+  function done(ok){
+    write(ok); ov.classList.remove('on');
+    var f = after; after = null;
+    try { document.dispatchEvent(new CustomEvent('tkcs', {detail:{ok:ok}})); } catch(e) {}
+    if (f) f(ok);
+  }
+  /* show the agreement. after(ok) runs when it is answered */
+  function open(cb){
+    build(); after = cb || null;
+    var a = agreed(), chk = ov.querySelector('#tkcsChk');
+    chk.checked = a; ov.querySelector('#tkcsYes').disabled = !a;
+    ov.querySelector('.tkcs').scrollTop = 0; ov.classList.add('on');
+  }
+  /* the settings switch. Turning it on without an agreement opens the agreement first */
+  function setShare(want, cb){
+    if (want && !agreed()) { open(function(ok){ if (cb) cb(ok); }); return; }
+    lsSet(SHARE, want ? '1' : '0'); if (cb) cb(want);
+  }
+  return {ver:CS_VER, agreed:agreed, needAsk:needAsk, on:on, open:open, setShare:setShare, adopt:adopt};
+})();
+/*TKCS-END*/
+(function adoptOld(){   // answers given inside KROPKI / Dungeon Chain before the shared answer existed
   var k = null; try { k = JSON.parse(ls('kropki-save-v1') || 'null'); } catch(e) {}
   var a = k && k.consent, b = ls('dchain_consent_v1');
-  if (a === 1 || b === '1') csSet(true); else if (a === 0 || b === '0') csSet(false);
+  if (a === 1 || b === '1') TKCS.adopt(true); else if (a === 0 || b === '0') TKCS.adopt(false);
 })();
-function shareOn(){ var c = csGet(); return !!(c && c.ok && ls('tkcy3_share') !== '0'); }
+function shareOn(){ return TKCS.on(); }
 
 /* ---- play log (this list): which game was opened ---- */
 var LOG_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSenbltEWiWROUqsu99Ciqdh7uCLVHBIC84yF_Ad0k8K8kuF9g/formResponse', LOG_ENTRY = 'entry.20824307';
@@ -289,21 +344,14 @@ $('ver').innerHTML = '<button id="verBtn"></button>';
 /* ---- overlays ---- */
 function open(id){ $(id).classList.add('on'); }
 function close(id){ $(id).classList.remove('on'); }
-var csAfter = null;
-function openConsent(after){ csAfter = after || null; var c = csGet(); $('csChk').checked = !!(c && c.ok); $('csYes').disabled = !$('csChk').checked; open('csOv'); }
-$('csChk').onchange = function(){ $('csYes').disabled = !this.checked; };
-function csDone(ok){ csSet(ok); close('csOv'); var f = csAfter; csAfter = null; if (f) f(); if (ok) log('open'); }
-$('csYes').onclick = function(){ if ($('csChk').checked) csDone(true); };
-$('csNo').onclick = function(){ csDone(false); };
+function openConsent(after){ TKCS.open(function(ok){ if (after) after(); if (ok) log('open'); }); }
 
 function renderSet(){ [].forEach.call($('shareSeg').children, function(b){ b.classList.toggle('on', (b.dataset.v === '1') === shareOn()); }); }
 $('setBtn').onclick = function(){ renderSet(); open('setOv'); };
 $('setClose').onclick = function(){ close('setOv'); };
 $('setOv').onclick = function(e){ if (e.target === this) close('setOv'); };
 [].forEach.call($('shareSeg').children, function(b){ b.onclick = function(){
-  var c = csGet();
-  if (b.dataset.v === '1' && !(c && c.ok)) { openConsent(renderSet); return; }
-  ls('tkcy3_share', b.dataset.v); renderSet();
+  TKCS.setShare(b.dataset.v === '1', renderSet);
 }; });
 $('csInfo').onclick = function(){ openConsent(renderSet); };
 /* ---- version & changelog (same look as KROPKI / Dungeon Chain / LAPIS) ---- */
@@ -362,7 +410,7 @@ $('instGo').onclick = function(){
 $('instSkip').onclick = function(){ close('inst'); next(); };
 
 /* first launch: (add to home) → consent → list */
-function next(){ if (!csGet()) openConsent(); else log('open'); }
+function next(){ if (TKCS.needAsk()) openConsent(); else log('open'); }
 if (location.protocol === 'https:' && !isApp()) open('inst'); else next();
 
 if ('serviceWorker' in navigator) addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
