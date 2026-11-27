@@ -125,7 +125,7 @@ ol.steps li{margin:6px 0}
 .topRow{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;max-width:640px}
 .topRow .status{font-size:15px;text-align:left;min-height:0;flex:1}
 .ctl{display:flex;gap:8px;align-items:center}
-.ctl .micbtn,.ctl .hang,.volBtn{width:46px;height:46px}
+.ctl .micbtn,.ctl .hang,.volBtn{width:44px;height:44px}
 .ctl .micbtn svg,.ctl .hang svg,.volBtn svg{width:24px;height:24px}
 .volBtn{border-radius:50%;border:0;background:var(--card);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--line);flex:none}
 .volRow{width:100%;max-width:420px}
@@ -295,6 +295,7 @@ ol.steps li{margin:6px 0}
       <svg id="icMicOn" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg>
       <svg id="icMicOff" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M3 3l18 18"/><path d="M9 9v2a3 3 0 0 0 5 2.2"/><path d="M15 9.4V5a3 3 0 0 0-5.9-.7"/><path d="M5 11a7 7 0 0 0 11.5 5.3"/><path d="M19 11a7 7 0 0 1-.6 2.8"/><path d="M12 18v4"/></svg>
     </button>
+      <button class="volBtn camBtn" id="btn3d" type="button" aria-label="りったい">🧊</button>
       <button class="volBtn camBtn" id="btnCam" type="button" aria-label="かおで うごかす">📸</button>
       <button class="volBtn" id="btnVol" type="button" aria-label="おとの おおきさ"><svg viewBox="0 0 24 24" fill="none" stroke="#4A3826" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
     <button class="hang" id="btnHang" aria-label="きる">
@@ -418,7 +419,7 @@ ol.steps li{margin:6px 0}
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script>
 'use strict';
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const PREFIX = 'facetalk-v1-';
 // TURNは使わない。PeerJSの初期設定にはPeerJS提供のTURNが含まれるため、STUNだけに上書きする。
 const ICE_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
@@ -739,6 +740,13 @@ function applyVolume() {
   else $('remoteAudio').volume = v;
 }
 $('vol').addEventListener('input', applyVolume);
+S.mode3d = (() => { try { return localStorage.getItem('facetalk-3d') === '1'; } catch (e) { return false; } })();
+$('btn3d').classList.toggle('on', S.mode3d);
+$('btn3d').addEventListener('click', () => {
+  S.mode3d = !S.mode3d; $('btn3d').classList.toggle('on', S.mode3d);
+  try { localStorage.setItem('facetalk-3d', S.mode3d ? '1' : '0'); } catch (e) {}
+  if (S.mode3d) { getLandmarker().catch(() => {}); const k = other(me()), fc = FACES[k]; toast(fc && fc.img ? '🧊 りったいの おめんに したよ' : '🧊 りったい：しゃしんの かおだけ おめんに なるよ'); } else toast('🧊 オフ');
+});
 $('btnCam').addEventListener('click', () => { if (CAM.on) { camStop(); toast('📸 オフ'); } else camStart(); });
 $('btnVol').addEventListener('click', () => { const r = $('volRow'); r.style.display = r.style.display === 'none' ? 'block' : 'none'; });
 $('btnTapAudio').addEventListener('click', async () => {
@@ -1451,12 +1459,12 @@ function sampleColors(face) {
 }
 
 /* --- 写真から 目と口を さがす（MediaPipe・スマホの中だけ） --- */
-let mpLandmarker = null, mpLoading = null;
+let mpLandmarker = null, mpLoading = null, MPMOD = null;
 function getLandmarker() {
   if (mpLandmarker) return Promise.resolve(mpLandmarker);
   if (mpLoading) return mpLoading;
   mpLoading = (async () => {
-    const mp = await import(MP_BASE + '/vision_bundle.mjs');
+    const mp = await import(MP_BASE + '/vision_bundle.mjs'); MPMOD = mp;
     const files = await mp.FilesetResolver.forVisionTasks(MP_BASE + '/wasm');
     mpLandmarker = await mp.FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: MP_MODEL, delegate: 'CPU' }, runningMode: 'IMAGE', numFaces: 1 });
     return mpLandmarker;
@@ -1500,7 +1508,7 @@ const VIEWS = [];
 function makeView(canvas, slot) {
   const v = { canvas, slot, gl: null, tc: document.createElement('canvas'), blinkAt: performance.now() + 1500 + Math.random() * 2000, blinkStart: -1, mouth: 0, key: null };
   v.tc.width = v.tc.height = TEX;
-  const gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: true });
+  const gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: true, depth: true });
   if (gl) {
     const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); return s; };
     const pr = gl.createProgram();
@@ -1509,10 +1517,19 @@ function makeView(canvas, slot) {
     gl.linkProgram(pr); gl.useProgram(pr);
     v.posBuf = gl.createBuffer(); v.uvBuf = gl.createBuffer(); v.idxBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, v.uvBuf); gl.bufferData(gl.ARRAY_BUFFER, REST, gl.STATIC_DRAW);
-    const tl = gl.getAttribLocation(pr, 't'); gl.enableVertexAttribArray(tl); gl.vertexAttribPointer(tl, 2, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, v.posBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NV * NV * 2), gl.DYNAMIC_DRAW);
-    v.pl = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(v.pl); gl.vertexAttribPointer(v.pl, 2, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, v.idxBuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, IDX, gl.STATIC_DRAW);
+    v.pr = pr; v.pl = gl.getAttribLocation(pr, 'p'); v.tl = gl.getAttribLocation(pr, 't');
+    // りったい（お面）用：奥行きつきの三角形
+    const pr3 = gl.createProgram();
+    gl.attachShader(pr3, sh(gl.VERTEX_SHADER, 'attribute vec3 p;attribute vec2 t;varying vec2 q;void main(){q=t;gl_Position=vec4(p,1.);}'));
+    gl.attachShader(pr3, sh(gl.FRAGMENT_SHADER, 'precision mediump float;varying vec2 q;uniform sampler2D s;void main(){gl_FragColor=texture2D(s,q);}'));
+    gl.linkProgram(pr3); v.pr3 = pr3; v.pl3 = gl.getAttribLocation(pr3, 'p'); v.tl3 = gl.getAttribLocation(pr3, 't');
+    v.mPos = gl.createBuffer(); v.mUV = gl.createBuffer(); v.mIdx = gl.createBuffer(); v.mFace = null;
+    v.tex2 = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, v.tex2);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    v.tc2 = document.createElement('canvas'); v.tc2.width = v.tc2.height = TEX;
     v.tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, v.tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -1677,15 +1694,106 @@ function drawView(v, now) {
   composeTex(v, key, now, levelOf(key));
   const P = meshPositions(key);
   if (v.gl) {
-    const gl = v.gl;
-    gl.viewport(0, 0, w, h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    const gl = v.gl, face = FACES[key], m3 = S.mode3d && maskReady(face);
+    gl.viewport(0, 0, w, h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    // うしろの いた（平らな写真）。りったいの ときは 顔の ところを はだの色で うめておく（お面が 横を向いたとき 顔が二重に 見えないように）
+    let backTex = v.tex;
     gl.bindTexture(gl.TEXTURE_2D, v.tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v.tc);
-    gl.bindBuffer(gl.ARRAY_BUFFER, v.posBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, P);
+    if (m3) { fillFaceHole(v, face); gl.bindTexture(gl.TEXTURE_2D, v.tex2); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v.tc2); backTex = v.tex2; }
+    gl.useProgram(v.pr); gl.bindTexture(gl.TEXTURE_2D, backTex);
+    gl.bindBuffer(gl.ARRAY_BUFFER, v.uvBuf); gl.enableVertexAttribArray(v.tl); gl.vertexAttribPointer(v.tl, 2, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, v.posBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, P); gl.enableVertexAttribArray(v.pl); gl.vertexAttribPointer(v.pl, 2, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, v.idxBuf);
     gl.drawElements(gl.TRIANGLES, IDX.length, gl.UNSIGNED_SHORT, 0);
+    if (m3) drawMask(v, key, face, now);
   } else if (v.ctx2d) {
     const g = v.ctx2d, f = FS[key]; g.clearRect(0, 0, w, h);
     const sw = w * FIT * f.sx, sh = h * FIT * f.sy; g.drawImage(v.tc, (w - sw) / 2, (h - sh) / 2, sw, sh);
   }
+}
+/* ---------- りったい（お面） ----------
+   写真から 顔の 468点（奥行きつき）を よみとり、MediaPipe の 三角形の つなぎかた（852こ）で 立体の お面を つくる。
+   目と口は 穴に なっているので、まわりの点から 三角形で ふさぐ。
+   お面の 表面には いつもの 顔の絵（まばたき・口パク・らくがき入り）を はるので、動きは 平らなときと おなじ。 */
+const RING_RE = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+const RING_LE = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
+const RING_MOUTH = [78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191];
+let MASK_IDX = null, OVAL = null;
+function maskTopology() {
+  if (MASK_IDX || !MPMOD) return MASK_IDX;
+  const T = MPMOD.FaceLandmarker.FACE_LANDMARKS_TESSELATION, a = [];
+  for (let i = 0; i + 2 < T.length; i += 3) if (T[i].end === T[i + 1].start && T[i + 1].end === T[i + 2].start) a.push(T[i].start, T[i + 1].start, T[i + 2].start);
+  [RING_RE, RING_LE, RING_MOUTH].forEach(r => { for (let i = 1; i + 1 < r.length; i++) a.push(r[0], r[i], r[i + 1]); });
+  MASK_IDX = new Uint16Array(a);
+  const O = MPMOD.FaceLandmarker.FACE_LANDMARKS_FACE_OVAL; OVAL = O.map(c => c.start);
+  return MASK_IDX;
+}
+function maskReady(face) {
+  if (!face || !face.ready || !face.img) return false;
+  if (face.pts3) return !!maskTopology();
+  if (!face.ptsTried && mpLandmarker) {   // その写真から 468点を よみとる（相手の写真も 自分のスマホで よむので、通信は ふえない）
+    face.ptsTried = true;
+    try {
+      const r = mpLandmarker.detect(face.el), pts = r && r.faceLandmarks && r.faceLandmarks[0];
+      if (pts) { const a = new Float32Array(468 * 3); for (let i = 0; i < 468; i++) { a[i * 3] = pts[i].x; a[i * 3 + 1] = pts[i].y; a[i * 3 + 2] = pts[i].z; } face.pts3 = a; }
+    } catch (e) { log('お面の よみとり 失敗: ' + e); }
+  } else if (!face.ptsTried) getLandmarker().catch(() => {});
+  return !!face.pts3 && !!maskTopology();
+}
+function fillFaceHole(v, face) {
+  const g = v.tc2.getContext('2d'), P = face.pts3; g.clearRect(0, 0, TEX, TEX); g.drawImage(v.tc, 0, 0);
+  if (!OVAL) return;
+  let cx = 0, cy = 0; OVAL.forEach(i => { cx += P[i * 3]; cy += P[i * 3 + 1]; }); cx /= OVAL.length; cy /= OVAL.length;
+  g.save(); g.beginPath(); g.arc(TEX / 2, TEX / 2, TEX * 0.485, 0, Math.PI * 2); g.clip();
+  g.fillStyle = face.skin; g.fillRect(0, 0, 0, 0);
+  g.filter = 'none'; g.fillStyle = face.skin; g.beginPath();
+  OVAL.forEach((i, k) => { const x = (cx + (P[i * 3] - cx) * 0.96) * TEX, y = (cy + (P[i * 3 + 1] - cy) * 0.96) * TEX; k ? g.lineTo(x, y) : g.moveTo(x, y); });
+  g.closePath(); g.fill();
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(70,40,25,.18)'; g.fill();   // 顔の よこがわは すこし かげに
+  g.restore();
+}
+function sampleD(f, u, v) {   // ゆがみの あみめから、その場所の ずれを とりだす
+  const x = Math.max(0, Math.min(NSEG - 1e-6, u * NSEG)), y = Math.max(0, Math.min(NSEG - 1e-6, v * NSEG)), i = x | 0, j = y | 0, fx = x - i, fy = y - j, d = f.d;
+  const at = (ii, jj, k) => d[(jj * NV + ii) * 2 + k];
+  const s = k => (at(i, j, k) * (1 - fx) + at(i + 1, j, k) * fx) * (1 - fy) + (at(i, j + 1, k) * (1 - fx) + at(i + 1, j + 1, k) * fx) * fy;
+  return [s(0), s(1)];
+}
+function drawMask(v, key, face, now) {
+  const gl = v.gl, P = face.pts3, f = FS[key], ex = exOf(key, now), idx = maskTopology();
+  if (v.mFace !== face) {   // 写真が かわったら はりなおす
+    v.mFace = face;
+    const uv = new Float32Array(468 * 2); for (let i = 0; i < 468; i++) { uv[i * 2] = P[i * 3]; uv[i * 2 + 1] = P[i * 3 + 1]; }
+    gl.bindBuffer(gl.ARRAY_BUFFER, v.mUV); gl.bufferData(gl.ARRAY_BUFFER, uv, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, v.mIdx); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, v.mPos); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(468 * 3), gl.DYNAMIC_DRAW);
+    let cx = 0, cy = 0, cz = 0; for (let i = 0; i < 468; i++) { cx += P[i * 3]; cy += P[i * 3 + 1]; cz += P[i * 3 + 2]; }
+    v.mC = [cx / 468, cy / 468, cz / 468];
+  }
+  // むき：カメラが あれば 本人の むき、なければ ゆっくり ゆらゆら
+  let yaw, pitch, roll, ox = 0, oy = 0;
+  if (ex) { yaw = Math.max(-0.7, Math.min(0.7, ex.yaw * 1.2)); pitch = Math.max(-0.5, Math.min(0.5, ex.pitch * 0.8)); roll = Math.max(-0.6, Math.min(0.6, ex.roll)); ox = Math.max(-0.8, Math.min(0.8, ex.yaw)) * 0.12; oy = Math.max(-0.5, Math.min(0.5, ex.pitch)) * 0.12; }
+  else { const t = now / 1000; yaw = 0.28 * Math.sin(t * 0.9); pitch = 0.07 * Math.sin(t * 0.65); roll = 0; }
+  const cyw = Math.cos(yaw), syw = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), cr = Math.cos(roll), sr = Math.sin(roll);
+  const [cx, cy, cz] = v.mC, K = 2 * FIT, ZS = 1.15, F = 4.2;
+  const out = v.mOut || (v.mOut = new Float32Array(468 * 3));
+  for (let i = 0; i < 468; i++) {
+    const u = P[i * 3], w = P[i * 3 + 1], dd = sampleD(f, u, w);
+    let X = (u + dd[0] - cx) * K * f.sx, Y = -(w + dd[1] - cy) * K * f.sy, Z = -(P[i * 3 + 2] - cz) * K * ZS;
+    let X1 = X * cyw + Z * syw, Z1 = -X * syw + Z * cyw;               // よこむき
+    let Y2 = Y * cp - Z1 * sp, Z2 = Y * sp + Z1 * cp;                  // うえした
+    let X3 = X1 * cr + Y2 * sr, Y3 = -X1 * sr + Y2 * cr;               // かたむき
+    const Z0 = -(P[i * 3 + 2] - cz) * K * ZS, s = (F / (F - Z2)) / (F / (F - Z0));   // 正面のときは 写真と ぴったり かさなる
+    out[i * 3] = X3 * s + (cx - 0.5) * K * f.sx + ox;
+    out[i * 3 + 1] = Y3 * s - (cy - 0.5) * K * f.sy - oy;
+    out[i * 3 + 2] = -Z2 * 0.2;
+  }
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  gl.useProgram(v.pr3); gl.bindTexture(gl.TEXTURE_2D, v.tex);
+  gl.bindBuffer(gl.ARRAY_BUFFER, v.mUV); gl.enableVertexAttribArray(v.tl3); gl.vertexAttribPointer(v.tl3, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, v.mPos); gl.bufferSubData(gl.ARRAY_BUFFER, 0, out); gl.enableVertexAttribArray(v.pl3); gl.vertexAttribPointer(v.pl3, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, v.mIdx);
+  gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_SHORT, 0);
+  gl.disable(gl.DEPTH_TEST);
 }
 function levelOf(key) {
   if (key === 'p') return 0;
